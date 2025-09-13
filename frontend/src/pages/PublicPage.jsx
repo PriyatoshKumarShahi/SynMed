@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Navbar from '../components/Navbar';
 import { 
   Heart, 
   Globe, 
@@ -118,7 +119,9 @@ const AnimatedPieChart = ({ data, type }) => {
   let cumulativePercentage = 0;
 
   return (
+
     <div ref={ref} className="flex flex-col items-center">
+      
       <div className="relative w-64 h-64 mb-8">
         <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
           {data.map((item, index) => {
@@ -175,7 +178,9 @@ const sectorData = [
 // --- Main Page ---
 const PublicPage = () => {
   return (
+
     <div className="min-h-screen bg-background font-inter">
+      <Navbar />
       {/* Hero Section */}
       <section id="home" className="relative min-h-screen flex items-center justify-center text-white bg-gradient-to-r from-health-primary to-health-accent">
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
