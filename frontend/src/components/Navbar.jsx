@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';   // ✅ add useNavigate
+import { Link, useNavigate } from 'react-router-dom';   
 import { Heart, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
@@ -8,11 +8,11 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [lang, setLang] = useState('EN');
   const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();   // ✅ must be inside component
+  const navigate = useNavigate();   
 
   const handleLogout = () => {
-    logout();            // clear storage + toast
-    navigate("/");       // redirect to public page
+    logout();            
+    navigate("/");      
   };
 
   return (
