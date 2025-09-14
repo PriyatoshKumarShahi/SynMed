@@ -20,13 +20,11 @@ export default function MedicalHistory() {
     loadData();
   }, []);
 
-   const formatDate = (dateString) => {
+    const formatDate = (dateString) => {
     if (!dateString) return "";
     const [year, month, day] = dateString.split("-");
     return `${day}/${month}/${year}`;
   };
-
-
   const handleDeletePrescription = async (id) => {
     try {
       await API.delete(`/upload/prescription/${id}`);
@@ -81,7 +79,7 @@ export default function MedicalHistory() {
             </div>
             <div>
               <p className="text-sm text-slate-500">Date of Birth</p>
-              <p className="font-semibold">{formatDate(user.dob)}</p>
+              <p className="font-semibold">{formatDate(user.dob)|| "N/A"}</p>
             </div>
             <div>
               <p className="text-sm text-slate-500">Blood Group</p>
