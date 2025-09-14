@@ -13,6 +13,7 @@ import {
   IndianRupee,
   Activity,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 
 // --- Count Up Component ---
@@ -239,9 +240,9 @@ const PublicPage = () => {
             {translations.hero.description}
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg transition">
-              {translations.hero.getStarted} <ArrowRight size={18} />
-            </button>
+            
+             <Link className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg transition" to="/signup">{translations.hero.getStarted} <ArrowRight /></Link> 
+            
             <button className="bg-white/20 backdrop-blur-md text-white px-6 py-3 rounded-xl shadow-lg hover:bg-white/30 transition">
               {translations.hero.learnMore}
             </button>
