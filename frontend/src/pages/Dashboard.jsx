@@ -30,13 +30,11 @@ export default function Dashboard() {
   const [uploadType, setUploadType] = useState("");
   const [videos, setVideos] = useState([]);
 
-  // ✅ Map state
   const [position, setPosition] = useState(null);
   const [hospitals, setHospitals] = useState([]);
 
   useOffline();
 
-  // Load logged-in user
   const loadUser = async () => {
     try {
       const res = await API.get("/user/me");
@@ -45,41 +43,41 @@ export default function Dashboard() {
       console.error(err);
     }
   };
+const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-  // Load health videos
-  const loadVideos = async () => {
-    try {
-      const API_KEY = "AIzaSyBgZj6ktve3ODe4tquwf3tdIO0L3Hwzw5E";
-      const channelIds = [
-        "UCsyPEi8BS07G8ZPXmpzIZrg", // MoHFW India
-        "UCJ9YHUwbtV0YnrGkAtHn4Qg", // Health Ministry India
-        "UCiMhD4jzUoV4-I5P-7FOA1g",
-      ];
+const loadVideos = async () => {
+  try {
+    const channelIds = [
+      "UCsyPEi8BS07G8ZPXmpzIZrg", // MoHFW India
+      "UCJ9YHUwbtV0YnrGkAtHn4Qg", // Health Ministry India
+      "UCiMhD4jzUoV4-I5P-7FOA1g",
+    ];
 
-      let allVideos = [];
+    let allVideos = [];
 
-      for (const channelId of channelIds) {
-        const res = await fetch(
-          `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet,id&order=date&maxResults=4`
-        );
-        const data = await res.json();
+    for (const channelId of channelIds) {
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet,id&order=date&maxResults=4`
+      );
+      const data = await res.json();
 
-        if (data.error) {
-          console.error("YouTube API error:", data.error);
-          continue;
-        }
-
-        allVideos = [
-          ...allVideos,
-          ...data.items.filter((item) => item.id.kind === "youtube#video"),
-        ];
+      if (data.error) {
+        console.error("YouTube API error:", data.error);
+        continue;
       }
 
-      setVideos(allVideos);
-    } catch (err) {
-      console.error("Error fetching videos:", err);
+      allVideos = [
+        ...allVideos,
+        ...data.items.filter((item) => item.id.kind === "youtube#video"),
+      ];
     }
-  };
+
+    setVideos(allVideos);
+  } catch (err) {
+    console.error("Error fetching videos:", err);
+  }
+};
+
 
   // ✅ Load user location + nearby hospitals (OpenStreetMap Overpass API)
   const loadNearbyHospitals = () => {
