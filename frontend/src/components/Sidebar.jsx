@@ -53,7 +53,6 @@ export default function Sidebar({
   </button>
 </div>
 
-
       {/* Navigation */}
       <nav className="p-3 space-y-2 flex-1 overflow-y-auto">
         <Link to="/profile" className="flex items-center gap-3 p-2 rounded hover:bg-slate-50">
