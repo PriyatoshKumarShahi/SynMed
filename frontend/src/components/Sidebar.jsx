@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { User, FileText, TestTube2, Globe, ChevronLeft, ChevronRight } from "lucide-react";
+import { User, FileText, TestTube2, Globe, ChevronLeft, ChevronRight, Stethoscope } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
@@ -62,7 +62,8 @@ export default function Sidebar({
           <Globe /> {!collapsed && "Multilingual"}
         </button>
         <Link to="/history" className="flex items-center gap-3 p-2 rounded hover:bg-slate-50">
-          <FileText /> {!collapsed && "Medical History"}
+          <Stethoscope /> {!collapsed && "Medical History"}
+
         </Link>
 
         {/* Upload Prescription */}

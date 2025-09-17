@@ -328,10 +328,7 @@ const loadVideos = async () => {
         className="rounded"
         whenReady={() => setMapLoading(false)} // ✅ hide loader once map ready
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+       
 
         <Marker position={position}>
           <Popup>Your Location</Popup>
