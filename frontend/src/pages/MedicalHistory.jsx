@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import API from "../utils/api";
 import { toast } from "react-toastify";
+import Loader2 from "../components/Loader"; // ✅ import loader
 
 export default function MedicalHistory() {
   const [data, setData] = useState({ prescriptions: [], tests: [] });
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false); // ✅ global loader state
 
   const loadData = async () => {
     try {
@@ -20,12 +22,14 @@ export default function MedicalHistory() {
     loadData();
   }, []);
 
-    const formatDate = (dateString) => {
+  const formatDate = (dateString) => {
     if (!dateString) return "";
     const [year, month, day] = dateString.split("-");
     return `${day}/${month}/${year}`;
   };
+
   const handleDeletePrescription = async (id) => {
+    setLoading(true); // ✅ show loader
     try {
       await API.delete(`/upload/prescription/${id}`);
       toast.success("Prescription deleted");
@@ -36,10 +40,13 @@ export default function MedicalHistory() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete prescription.");
+    } finally {
+      setLoading(false); // ✅ hide loader
     }
   };
 
   const handleDeleteTest = async (id) => {
+    setLoading(true); // ✅ show loader
     try {
       await API.delete(`/upload/test/${id}`);
       toast.success("Test result deleted");
@@ -50,14 +57,17 @@ export default function MedicalHistory() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete test result.");
+    } finally {
+      setLoading(false); // ✅ hide loader
     }
   };
 
   return (
     <div className="p-6 bg-gradient-to-br from-yellow-50 via-white to-blue-50 min-h-screen flex flex-col items-center">
-      <h2 className="text-3xl font-bold text-slate-800 mb-6">
-        Medical History
-      </h2>
+      {/* ✅ Loader Overlay */}
+      {loading && <Loader2 text="Deleting..." />}
+
+      <h2 className="text-3xl font-bold text-slate-800 mb-6">Medical History</h2>
 
       {/* ✅ User Profile Section */}
       {user && (
@@ -79,7 +89,7 @@ export default function MedicalHistory() {
             </div>
             <div>
               <p className="text-sm text-slate-500">Date of Birth</p>
-              <p className="font-semibold">{formatDate(user.dob)|| "N/A"}</p>
+              <p className="font-semibold">{formatDate(user.dob) || "N/A"}</p>
             </div>
             <div>
               <p className="text-sm text-slate-500">Blood Group</p>
