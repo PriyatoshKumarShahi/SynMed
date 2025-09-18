@@ -19,6 +19,6 @@ useEffect(() => {
   load();
 }, [userId]);
 
-return qrData ? <QRCodeCanvas value={qrData} size={200} /> : <div>Loading...</div>;
+return qrData ? <QRCodeCanvas value={qrData} size={300} /> : <div>Loading...</div>;
 
 }

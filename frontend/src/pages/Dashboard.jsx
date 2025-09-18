@@ -253,18 +253,18 @@ const loadVideos = async () => {
     </h2>
 
     {/* ✅ QR + Info */}
-    <div className="grid md:grid-cols-2 gap-6 mt-44 ml-60 items-stretch">
-      <div className="flex flex-col w-1/2 items-center mt-20 justify-center rounded-lg p-6">
+    <div className="grid md:grid-cols-2 gap-6 mt-40 ml-60 items-stretch">
+      <div className="flex flex-col w-1/2 items-center mt-20  justify-center rounded-lg p-6">
         <QRDisplay userId={user?._id} />
         <h3 className="font-semibold text-gray-700 mt-4 text-lg">
           Your Health QR
         </h3>
       </div>
-      <div className="flex flex-col -ml-36 mr-36 mt-20 justify-center rounded-lg p-6">
-        <h3 className="font-semibold text-gray-700 mb-3 text-lg">
+      <div className="flex flex-col -ml-36 mr-36 mt-10 justify-center rounded-lg p-6">
+        <h3 className="font-semibold  text-gray-700 mb-3 text-4xl">
           How to Use Your QR
         </h3>
-        <p className="text-gray-600 text-base leading-relaxed">
+        <p className="text-gray-600 text-lg leading-relaxed">
           Show this QR code to your nearest doctor to securely share
           your health records and receive prescriptions accordingly.
         </p>
@@ -276,7 +276,7 @@ const loadVideos = async () => {
     </div>
 
     {/* ✅ AI Assistant Section */}
-    <div className="p-10 rounded-lg mt-6 flex items-center justify-between bg-yellow-50 min-h-[90vh]">
+    <div className="p-10 rounded-2xl mt-6 flex items-center justify-between  bg-yellow-100 min-h-[90vh]">
       {/* Left: Description */}
       <div className="max-w-xl flex-1 pr-6">
         <h3 className="font-bold text-gray-800 text-3xl mb-4">
@@ -287,11 +287,11 @@ const loadVideos = async () => {
           Simply enter your <span className="font-semibold">symptoms</span> and get:
         </p>
         <ul className="list-disc list-inside space-y-2 text-gray-700 text-base mb-6">
-          <li>⚡ Instant <span className="font-semibold">home remedies</span> to ease discomfort.</li>
-          <li>🧘 Personalized <span className="font-semibold">yoga</span> and <span className="font-semibold">meditation</span> video suggestions.</li>
-          <li>📖 Helpful <span className="font-semibold">health tips</span> for daily wellness.</li>
-          <li>🌿 Guidance on natural healing practices.</li>
-          <li>📊 Track your common symptoms over time.</li>
+          <li> Instant <span className="font-semibold">home remedies</span> to ease discomfort.</li>
+          <li> Personalized <span className="font-semibold">yoga</span> and <span className="font-semibold">meditation</span> video suggestions.</li>
+          <li> Helpful <span className="font-semibold">health tips</span> for daily wellness.</li>
+          <li> Guidance on natural healing practices.</li>
+          <li> Track your common symptoms over time.</li>
         </ul>
         <p className="text-gray-600 text-base mb-6">
           Your assistant is designed to keep things simple, natural, and supportive.  
@@ -299,7 +299,7 @@ const loadVideos = async () => {
         </p>
         <button
           onClick={() => navigate("/ai-chatbot")}
-          className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105"
+          className="px-8  py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105"
         >
           Start Chatting with AI
         </button>

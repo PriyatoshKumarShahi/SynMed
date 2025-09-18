@@ -41,7 +41,7 @@ export default function App() {
           <Route path="/public/:id" element={<PublicRecord />} />
 
           {/* 👇 AI Chatbot Page (protected) */}
-          <Route
+          <Route 
             path="/ai-chatbot"
             element={<ProtectedRoute><AiChatbotPage /></ProtectedRoute>}
           />

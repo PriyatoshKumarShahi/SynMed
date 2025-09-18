@@ -28,7 +28,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           <Link to="/" className="text-slate-700">Home</Link>
           <Link to="/" className="text-slate-700">About</Link>
-          <Link to="/" className="text-slate-700">Features</Link>
+          <Link to="/ai-chatbot" className="text-slate-700">AI Chatbot</Link>
           <Link to="/" className="text-slate-700">Migrant Data</Link>
 
           <button 
