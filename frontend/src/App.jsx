@@ -13,6 +13,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const MedicalHistory = React.lazy(() => import('./pages/MedicalHistory'));
 const PublicRecord = React.lazy(() => import('./pages/PublicRecord')); // 👈 dynamic QR page
+const AiChatbotPage = React.lazy(() => import('./pages/AiChatbotPage')); // 👈 new chatbot page
 
 export default function App() {
   return (
@@ -35,8 +36,15 @@ export default function App() {
             path="/history"
             element={<ProtectedRoute><MedicalHistory /></ProtectedRoute>}
           />
+
           {/* 👇 dynamic route for QR scanned links */}
           <Route path="/public/:id" element={<PublicRecord />} />
+
+          {/* 👇 AI Chatbot Page (protected) */}
+          <Route
+            path="/ai-chatbot"
+            element={<ProtectedRoute><AiChatbotPage /></ProtectedRoute>}
+          />
         </Routes>
         {/* ✅ ToastContainer should be outside Routes */}
         <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} />

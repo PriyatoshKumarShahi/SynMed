@@ -7,8 +7,7 @@ import Navbar from "../components/Navbar";
 import Loader from "../components/Loader";
 import { toast } from "react-toastify";
 import SectionLoader from "../components/SectionLoader";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { useNavigate } from "react-router-dom";
 
 // ✅ Leaflet Imports
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
@@ -65,33 +64,8 @@ export default function Dashboard() {
   const [selectedHospital, setSelectedHospital] = useState(null);
 const [videoLoading, setVideoLoading] = useState(true);
 const [mapLoading, setMapLoading] = useState(true);
+const navigate = useNavigate();
 
-const [messages, setMessages] = useState([
-    { sender: "bot", text: "Hello! 👋 Enter your symptoms and I’ll suggest home remedies, yoga, or meditation videos." }
-  ]);
-  const [input, setInput] = useState("");
-  const [loadingReply, setLoadingReply] = useState(false);
-
-
-
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-    const userMsg = { sender: "user", text: input };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setLoadingReply(true);
-
-    try {
-      const res = await API.post("/chatbot/chat", { message: input });
-      const botMsg = { sender: "bot", text: res.data.reply };
-      setMessages((prev) => [...prev, botMsg]);
-    } catch (err) {
-      console.error(err);
-      setMessages((prev) => [...prev, { sender: "bot", text: "⚠️ Error getting response" }]);
-    } finally {
-      setLoadingReply(false);
-    }
-  };
 
 
   useOffline();
@@ -271,216 +245,196 @@ const loadVideos = async () => {
           onUploadTest={handleUploadTest}
         />
 
-        <main className="flex-1 p-6 bg-gray-50 ml-64">
-          <div className="max-w-6xl mx-auto space-y-10">
-            {/* ✅ Welcome Section */}
-            <h2 className="text-3xl font-bold text-gray-800">
-              Welcome, {user?.name}
-            </h2>
+<main className="flex-1 p-6 ml-64">
+  <div className="max-w-6xl mx-auto space-y-10">
+    {/* ✅ Welcome Section */}
+    <h2 className="text-3xl font-bold text-gray-800">
+      Welcome, {user?.name}
+    </h2>
 
-            {/* ✅ QR + Info */}
-            <div className="grid md:grid-cols-2 gap-6 mt-6 ml-60  items-stretch">
-              <div className="flex flex-col w-1/2 items-center justify-center bg-white rounded-lg shadow p-6">
-                <QRDisplay userId={user?._id} />
-                <h3 className="font-semibold text-gray-700 mt-4 text-lg">
-                  Your Health QR
-                </h3>
-              </div>
-              <div className="flex flex-col -ml-36 mr-36 justify-center bg-white rounded-lg shadow p-6">
-                <h3 className="font-semibold text-gray-700 mb-3 text-lg">
-                  How to Use Your QR
-                </h3>
-                <p className="text-gray-600 text-base leading-relaxed">
-                  Show this QR code to your nearest doctor to securely share
-                  your health records and receive prescriptions accordingly.
-                </p>
-                <p className="text-gray-600 text-base mt-3 leading-relaxed">
-                  Carry it during checkups or emergencies to avoid repeating
-                  tests and give doctors instant access to your past treatments.
-                </p>
-              </div>
-            </div>
+    {/* ✅ QR + Info */}
+    <div className="grid md:grid-cols-2 gap-6 mt-44 ml-60 items-stretch">
+      <div className="flex flex-col w-1/2 items-center mt-20 justify-center rounded-lg p-6">
+        <QRDisplay userId={user?._id} />
+        <h3 className="font-semibold text-gray-700 mt-4 text-lg">
+          Your Health QR
+        </h3>
+      </div>
+      <div className="flex flex-col -ml-36 mr-36 mt-20 justify-center rounded-lg p-6">
+        <h3 className="font-semibold text-gray-700 mb-3 text-lg">
+          How to Use Your QR
+        </h3>
+        <p className="text-gray-600 text-base leading-relaxed">
+          Show this QR code to your nearest doctor to securely share
+          your health records and receive prescriptions accordingly.
+        </p>
+        <p className="text-gray-600 text-base mt-3 leading-relaxed">
+          Carry it during checkups or emergencies to avoid repeating
+          tests and give doctors instant access to your past treatments.
+        </p>
+      </div>
+    </div>
 
-
-
-             <div className="p-6 bg-white rounded-lg h-screen shadow mt-6">
-        <h3 className="font-semibold text-gray-700 mb-4 text-lg">AI Health Chatbot 🤖</h3>
-        <div className="border rounded-lg p-4 h-5/6 overflow-y-auto bg-gray-50 space-y-3">
-          {messages.map((msg, idx) => (
-       <div
-  key={idx}
-  className={`p-4 max-w-2xl rounded-lg ${
-    msg.sender === "user"
-      ? "bg-blue-500 text-white self-end ml-auto"
-      : "bg-gray-100 text-gray-900"
-  }`}
->
-  {msg.sender === "bot" ? (
-  <div className="prose prose-sm md:prose-base space-y-4 text-gray-800">
-    <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-      h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2" {...props} />,
-      h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2" {...props} />,
-      h3: ({node, ...props}) => <h3 className="text-md font-bold mt-3 mb-1" {...props} />,
-      p: ({node, ...props}) => <p className="mt-2 mb-2 leading-relaxed" {...props} />,
-      li: ({node, ...props}) => <li className="ml-4 list-disc" {...props} />,
-      strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
-    }}>
-      {msg.text}
-    </ReactMarkdown>
-  </div>
-) : (
-  msg.text
-)}
-</div>
-          ))}
-          {loadingReply && <p className="text-gray-500">Bot is typing...</p>}
-        </div>
-
-        <div className="mt-4 flex">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Enter your symptoms..."
-            className="flex-1 border rounded-l-lg p-2 focus:outline-none"
-          />
-          <button
-            onClick={sendMessage}
-            className="bg-blue-600 text-white px-4 rounded-r-lg hover:bg-blue-700"
-          >
-            Send
-          </button>
-        </div>
+    {/* ✅ AI Assistant Section */}
+    <div className="p-10 rounded-lg mt-6 flex items-center justify-between bg-yellow-50 min-h-[90vh]">
+      {/* Left: Description */}
+      <div className="max-w-xl flex-1 pr-6">
+        <h3 className="font-bold text-gray-800 text-3xl mb-4">
+          🤖 Your AI Health Assistant
+        </h3>
+        <p className="text-gray-700 leading-relaxed mb-4 text-lg">
+          Meet your personal AI-powered Health Companion!  
+          Simply enter your <span className="font-semibold">symptoms</span> and get:
+        </p>
+        <ul className="list-disc list-inside space-y-2 text-gray-700 text-base mb-6">
+          <li>⚡ Instant <span className="font-semibold">home remedies</span> to ease discomfort.</li>
+          <li>🧘 Personalized <span className="font-semibold">yoga</span> and <span className="font-semibold">meditation</span> video suggestions.</li>
+          <li>📖 Helpful <span className="font-semibold">health tips</span> for daily wellness.</li>
+          <li>🌿 Guidance on natural healing practices.</li>
+          <li>📊 Track your common symptoms over time.</li>
+        </ul>
+        <p className="text-gray-600 text-base mb-6">
+          Your assistant is designed to keep things simple, natural, and supportive.  
+          While it can guide you, remember it’s <span className="font-semibold">not a replacement for professional medical advice</span>.  
+        </p>
+        <button
+          onClick={() => navigate("/ai-chatbot")}
+          className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105"
+        >
+          Start Chatting with AI
+        </button>
       </div>
 
-            {/* ✅ Health Videos */}
- <div className="p-6 bg-white rounded-lg shadow">
-  <h3 className="font-semibold text-gray-700 mb-4 text-lg">
-    Health & Hygiene Videos
-  </h3>
-
-  {videoLoading ? (
-    <SectionLoader text="Loading videos..." />
-  ) : (
-    <div className="grid md:grid-cols-2 gap-4">
-      {videos.map((video) => (
-        <div
-          key={video.id.videoId || video.id.channelId}
-          className="relative aspect-w-16 aspect-h-9"
-        >
-          <iframe
-            className="w-full h-64 rounded"
-            src={`https://www.youtube.com/embed/${video.id.videoId}`}
-            title={video.snippet.title}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            onLoad={() => setVideoLoading(false)}
-          />
-          <p className="mt-2 text-sm font-medium text-gray-700">
-            {video.snippet.title}
-          </p>
-        </div>
-      ))}
+      {/* Right: AI Image */}
+      <div className="flex-shrink-0 animate-bounce">
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png"
+          alt="AI Assistant"
+          className="w-64 h-64 object-contain"
+        />
+      </div>
     </div>
-  )}
-</div>
 
+    {/* ✅ Health Videos */}
+    <div className="p-6 rounded-lg">
+      <h3 className="font-semibold text-gray-700 mb-4 text-lg">
+        Health & Hygiene Videos
+      </h3>
 
-
-            {/* ✅ Nearby Hospitals */}
-            <div className="grid md:grid-cols-2 gap-6 mt-6 items-stretch">
-              {/* Left: Map */}
-           <div className="flex flex-col justify-center bg-white rounded-lg shadow p-6">
-  <h3 className="font-semibold text-gray-700 mb-4 text-lg">
-    Nearby Hospitals
-  </h3>
-<div className="relative">
-  {position ? (
-    <>
-      {mapLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-[1000]">
-          <SectionLoader text="Loading map..." />
+      {videoLoading ? (
+        <SectionLoader text="Loading videos..." />
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          {videos.map((video) => (
+            <div
+              key={video.id.videoId || video.id.channelId}
+              className="relative aspect-w-16 aspect-h-9"
+            >
+              <iframe
+                className="w-full h-64 rounded"
+                src={`https://www.youtube.com/embed/${video.id.videoId}`}
+                title={video.snippet.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                onLoad={() => setVideoLoading(false)}
+              />
+              <p className="mt-2 text-sm font-medium text-gray-700">
+                {video.snippet.title}
+              </p>
+            </div>
+          ))}
         </div>
       )}
-      <MapContainer
-        center={position}
-        zoom={13}
-        style={{ height: "300px", width: "100%" }}
-        className="rounded"
-        whenReady={() => setMapLoading(false)} // ✅ hide loader once map ready
-      >
-       
-<TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={position}>
-          <Popup>Your Location</Popup>
-        </Marker>
+    </div>
 
-        {hospitals.map((hospital) => (
-          <Marker
-            key={hospital.id}
-            position={[hospital.lat, hospital.lon]}
-            eventHandlers={{ click: () => setSelectedHospital(hospital) }}
-          >
-            <Popup>{hospital.name}</Popup>
-          </Marker>
-        ))}
+    {/* ✅ Nearby Hospitals */}
+    <div className="grid md:grid-cols-2 gap-6 mt-6 items-stretch">
+      {/* Left: Map */}
+      <div className="flex flex-col justify-center rounded-lg p-6">
+        <h3 className="font-semibold text-gray-700 mb-4 text-lg">
+          Nearby Hospitals
+        </h3>
+        <div className="relative">
+          {position ? (
+            <>
+              {mapLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-[1000]">
+                  <SectionLoader text="Loading map..." />
+                </div>
+              )}
+              <MapContainer
+                center={position}
+                zoom={13}
+                style={{ height: "300px", width: "100%" }}
+                className="rounded"
+                whenReady={() => setMapLoading(false)}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker position={position}>
+                  <Popup>Your Location</Popup>
+                </Marker>
 
-        {selectedHospital && (
-          <RoutingMachine position={position} hospital={selectedHospital} />
-        )}
-      </MapContainer>
-    </>
-  ) : (
-    <p className="text-gray-500">Fetching your location...</p>
-  )}
-</div>
+                {hospitals.map((hospital) => (
+                  <Marker
+                    key={hospital.id}
+                    position={[hospital.lat, hospital.lon]}
+                    eventHandlers={{ click: () => setSelectedHospital(hospital) }}
+                  >
+                    <Popup>{hospital.name}</Popup>
+                  </Marker>
+                ))}
 
-</div>
-
-
-
-           {/* Right: Scrollable Hospital List */}
-<div className="flex flex-col bg-white rounded-lg shadow p-6">
-  <h3 className="font-semibold text-gray-700 mb-3 text-lg">
-    Hospitals Nearby
-  </h3>
-
-  <div className="relative overflow-y-auto max-h-72 space-y-3 pr-2">
-    {/* ✅ Loader overlay for hospital list */}
-    {mapLoading && (
-      <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-[1000]">
-        <SectionLoader text="Loading hospitals..." />
+                {selectedHospital && (
+                  <RoutingMachine position={position} hospital={selectedHospital} />
+                )}
+              </MapContainer>
+            </>
+          ) : (
+            <p className="text-gray-500">Fetching your location...</p>
+          )}
+        </div>
       </div>
-    )}
 
-    {!mapLoading && hospitals.length > 0 ? (
-      hospitals.map((hospital) => (
-        <button
-          key={hospital.id}
-          onClick={() => setSelectedHospital(hospital)}
-          className={`w-full text-left p-2 rounded hover:bg-blue-100 ${
-            selectedHospital?.id === hospital.id
-              ? "bg-blue-200 font-semibold"
-              : "bg-gray-50"
-          }`}
-        >
-          {hospital.name}
-        </button>
-      ))
-    ) : !mapLoading ? (
-      <p className="text-gray-500 text-center">Loading Hospitals...</p>
-    ) : null}
-  </div>
-</div>
+      {/* Right: Hospital List */}
+      <div className="flex flex-col rounded-lg p-6">
+        <h3 className="font-semibold text-gray-700 mb-3 text-lg">
+          Hospitals Nearby
+        </h3>
 
-
+        <div className="relative overflow-y-auto max-h-72 space-y-3 pr-2">
+          {mapLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-[1000]">
+              <SectionLoader text="Loading hospitals..." />
             </div>
-          </div>
-        </main>
+          )}
+
+          {!mapLoading && hospitals.length > 0 ? (
+            hospitals.map((hospital) => (
+              <button
+                key={hospital.id}
+                onClick={() => setSelectedHospital(hospital)}
+                className={`w-full text-left p-2 rounded hover:bg-blue-100 ${
+                  selectedHospital?.id === hospital.id
+                    ? "bg-blue-200 font-semibold"
+                    : "bg-gray-50"
+                }`}
+              >
+                {hospital.name}
+              </button>
+            ))
+          ) : !mapLoading ? (
+            <p className="text-gray-500 text-center">Loading Hospitals...</p>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
       </div>
     </div>
   );
