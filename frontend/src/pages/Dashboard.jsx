@@ -7,6 +7,8 @@ import Navbar from "../components/Navbar";
 import Loader from "../components/Loader";
 import { toast } from "react-toastify";
 import SectionLoader from "../components/SectionLoader";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // ✅ Leaflet Imports
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
@@ -63,6 +65,34 @@ export default function Dashboard() {
   const [selectedHospital, setSelectedHospital] = useState(null);
 const [videoLoading, setVideoLoading] = useState(true);
 const [mapLoading, setMapLoading] = useState(true);
+
+const [messages, setMessages] = useState([
+    { sender: "bot", text: "Hello! 👋 Enter your symptoms and I’ll suggest home remedies, yoga, or meditation videos." }
+  ]);
+  const [input, setInput] = useState("");
+  const [loadingReply, setLoadingReply] = useState(false);
+
+
+
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+    const userMsg = { sender: "user", text: input };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setLoadingReply(true);
+
+    try {
+      const res = await API.post("/chatbot/chat", { message: input });
+      const botMsg = { sender: "bot", text: res.data.reply };
+      setMessages((prev) => [...prev, botMsg]);
+    } catch (err) {
+      console.error(err);
+      setMessages((prev) => [...prev, { sender: "bot", text: "⚠️ Error getting response" }]);
+    } finally {
+      setLoadingReply(false);
+    }
+  };
+
 
   useOffline();
 
@@ -165,7 +195,7 @@ const loadVideos = async () => {
 
   useEffect(() => {
     loadUser();
-    loadVideos();
+    // loadVideos();
     loadNearbyHospitals();
   }, []);
 
@@ -270,6 +300,58 @@ const loadVideos = async () => {
                 </p>
               </div>
             </div>
+
+
+
+             <div className="p-6 bg-white rounded-lg h-screen shadow mt-6">
+        <h3 className="font-semibold text-gray-700 mb-4 text-lg">AI Health Chatbot 🤖</h3>
+        <div className="border rounded-lg p-4 h-5/6 overflow-y-auto bg-gray-50 space-y-3">
+          {messages.map((msg, idx) => (
+       <div
+  key={idx}
+  className={`p-4 max-w-2xl rounded-lg ${
+    msg.sender === "user"
+      ? "bg-blue-500 text-white self-end ml-auto"
+      : "bg-gray-100 text-gray-900"
+  }`}
+>
+  {msg.sender === "bot" ? (
+  <div className="prose prose-sm md:prose-base space-y-4 text-gray-800">
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+      h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2" {...props} />,
+      h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-4 mb-2" {...props} />,
+      h3: ({node, ...props}) => <h3 className="text-md font-bold mt-3 mb-1" {...props} />,
+      p: ({node, ...props}) => <p className="mt-2 mb-2 leading-relaxed" {...props} />,
+      li: ({node, ...props}) => <li className="ml-4 list-disc" {...props} />,
+      strong: ({node, ...props}) => <strong className="font-semibold" {...props} />,
+    }}>
+      {msg.text}
+    </ReactMarkdown>
+  </div>
+) : (
+  msg.text
+)}
+</div>
+          ))}
+          {loadingReply && <p className="text-gray-500">Bot is typing...</p>}
+        </div>
+
+        <div className="mt-4 flex">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Enter your symptoms..."
+            className="flex-1 border rounded-l-lg p-2 focus:outline-none"
+          />
+          <button
+            onClick={sendMessage}
+            className="bg-blue-600 text-white px-4 rounded-r-lg hover:bg-blue-700"
+          >
+            Send
+          </button>
+        </div>
+      </div>
 
             {/* ✅ Health Videos */}
  <div className="p-6 bg-white rounded-lg shadow">
