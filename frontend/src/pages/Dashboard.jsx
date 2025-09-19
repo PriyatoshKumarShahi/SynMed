@@ -43,7 +43,7 @@ const RoutingMachine = ({ position, hospital }) => {
       show: false,
       addWaypoints: false,
       position: "topright",
-      createMarker: () => null, // prevent duplicate markers
+      createMarker: () => null,
     }).addTo(map);
 
     return () => map.removeControl(routingControl);
@@ -62,11 +62,9 @@ export default function Dashboard() {
   const [position, setPosition] = useState(null);
   const [hospitals, setHospitals] = useState([]);
   const [selectedHospital, setSelectedHospital] = useState(null);
-const [videoLoading, setVideoLoading] = useState(true);
-const [mapLoading, setMapLoading] = useState(true);
-const navigate = useNavigate();
-
-
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [mapLoading, setMapLoading] = useState(true);
+  const navigate = useNavigate();
 
   useOffline();
 
@@ -82,43 +80,41 @@ const navigate = useNavigate();
 
   const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-const loadVideos = async () => {
-  setVideoLoading(true); // start loading
-  try {
-    const channelIds = [
-      "UCsyPEi8BS07G8ZPXmpzIZrg", // MoHFW India
-      "UCJ9YHUwbtV0YnrGkAtHn4Qg", // Health Ministry India
-      "UCiMhD4jzUoV4-I5P-7FOA1g",
-    ];
-
-    let allVideos = [];
-
-    for (const channelId of channelIds) {
-      const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet,id&order=date&maxResults=4`
-      );
-      const data = await res.json();
-
-     if (data.error) {
-  toast.error("YouTube quota exceeded, try later");
-  return;
-}
-
-
-      allVideos = [
-        ...allVideos,
-        ...data.items.filter((item) => item.id.kind === "youtube#video"),
+  const loadVideos = async () => {
+    setVideoLoading(true);
+    try {
+      const channelIds = [
+        "UCsyPEi8BS07G8ZPXmpzIZrg",
+        "UCJ9YHUwbtV0YnrGkAtHn4Qg",
+        "UCiMhD4jzUoV4-I5P-7FOA1g",
       ];
+
+      let allVideos = [];
+
+      for (const channelId of channelIds) {
+        const res = await fetch(
+          `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet,id&order=date&maxResults=4`
+        );
+        const data = await res.json();
+
+        if (data.error) {
+          toast.error("YouTube quota exceeded, try later");
+          return;
+        }
+
+        allVideos = [
+          ...allVideos,
+          ...data.items.filter((item) => item.id.kind === "youtube#video"),
+        ];
+      }
+
+      setVideos(allVideos);
+    } catch (err) {
+      console.error("Error fetching videos:", err);
+    } finally {
+      setVideoLoading(false);
     }
-
-    setVideos(allVideos);
-  } catch (err) {
-    console.error("Error fetching videos:", err);
-  } finally {
-    setVideoLoading(false); // ✅ stop loader here
-  }
-};
-
+  };
 
   // ✅ Load Nearby Hospitals
   const loadNearbyHospitals = () => {
@@ -173,7 +169,7 @@ const loadVideos = async () => {
     loadNearbyHospitals();
   }, []);
 
-  // ✅ Handle File Uploads
+  // ✅ File Upload Handlers
   const handleUploadPrescription = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -220,11 +216,38 @@ const loadVideos = async () => {
     }
   };
 
+  // ✅ Static News Data
+  const news = [
+    {
+      title: "Skill Development Scheme for Migrant Workers",
+      description:
+        "The Ministry of Skill Development has launched training programs for migrants to boost employment.",
+      url: "https://www.msde.gov.in/",
+    },
+    {
+      title: "Free Healthcare for Migrants",
+      description:
+        "State governments and NGOs are organizing free health check-up camps for migrant workers.",
+      url: "https://www.nhp.gov.in/",
+    },
+    {
+      title: "Affordable Housing Subsidy for Migrants",
+      description:
+        "Pradhan Mantri Awas Yojana (PMAY) offers housing subsidies, including for migrant families.",
+      url: "https://pmaymis.gov.in/",
+    },
+    {
+      title: "Scholarships for Children of Migrants",
+      description:
+        "National Scholarship Portal (NSP) provides financial support for children of migrants.",
+      url: "https://scholarships.gov.in/",
+    },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      {/* Loader overlay */}
       {loading && (
         <Loader
           text={
@@ -245,196 +268,207 @@ const loadVideos = async () => {
           onUploadTest={handleUploadTest}
         />
 
-<main className="flex-1 p-6 ml-64">
-  <div className="max-w-6xl mx-auto space-y-10">
-    {/* ✅ Welcome Section */}
-    <h2 className="text-3xl font-bold text-gray-800">
-      Welcome, {user?.name}
-    </h2>
+        <main className="flex-1 p-6 ml-64">
+          <div className="max-w-6xl mx-auto space-y-10">
+            {/* ✅ Welcome */}
+            <h2 className="text-3xl font-bold text-gray-800">
+              Welcome, {user?.name}
+            </h2>
 
-    {/* ✅ QR + Info */}
-    <div className="grid md:grid-cols-2 gap-6 mt-40 ml-60 items-stretch">
-      <div className="flex flex-col w-1/2 items-center mt-20  justify-center rounded-lg p-6">
-        <QRDisplay userId={user?._id} />
-        <h3 className="font-semibold text-gray-700 mt-4 text-lg">
-          Your Health QR
-        </h3>
-      </div>
-      <div className="flex flex-col -ml-36 mr-36 mt-10 justify-center rounded-lg p-6">
-        <h3 className="font-semibold  text-gray-700 mb-3 text-4xl">
-          How to Use Your QR
-        </h3>
-        <p className="text-gray-600 text-lg leading-relaxed">
-          Show this QR code to your nearest doctor to securely share
-          your health records and receive prescriptions accordingly.
-        </p>
-        <p className="text-gray-600 text-base mt-3 leading-relaxed">
-          Carry it during checkups or emergencies to avoid repeating
-          tests and give doctors instant access to your past treatments.
-        </p>
-      </div>
-    </div>
-
-    {/* ✅ AI Assistant Section */}
-    <div className="p-10 rounded-2xl mt-6 flex items-center justify-between  bg-yellow-100 min-h-[90vh]">
-      {/* Left: Description */}
-      <div className="max-w-xl flex-1 pr-6">
-        <h3 className="font-bold text-gray-800 text-3xl mb-4">
-          🤖 Your AI Health Assistant
-        </h3>
-        <p className="text-gray-700 leading-relaxed mb-4 text-lg">
-          Meet your personal AI-powered Health Companion!  
-          Simply enter your <span className="font-semibold">symptoms</span> and get:
-        </p>
-        <ul className="list-disc list-inside space-y-2 text-gray-700 text-base mb-6">
-          <li> Instant <span className="font-semibold">home remedies</span> to ease discomfort.</li>
-          <li> Personalized <span className="font-semibold">yoga</span> and <span className="font-semibold">meditation</span> video suggestions.</li>
-          <li> Helpful <span className="font-semibold">health tips</span> for daily wellness.</li>
-          <li> Guidance on natural healing practices.</li>
-          <li> Track your common symptoms over time.</li>
-        </ul>
-        <p className="text-gray-600 text-base mb-6">
-          Your assistant is designed to keep things simple, natural, and supportive.  
-          While it can guide you, remember it’s <span className="font-semibold">not a replacement for professional medical advice</span>.  
-        </p>
-        <button
-          onClick={() => navigate("/ai-chatbot")}
-          className="px-8  py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105"
-        >
-          Start Chatting with AI
-        </button>
-      </div>
-
-      {/* Right: AI Image */}
-      <div className="flex-shrink-0 animate-bounce">
-        <img
-          src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png"
-          alt="AI Assistant"
-          className="w-64 h-64 object-contain"
-        />
-      </div>
-    </div>
-
-    {/* ✅ Health Videos */}
-    <div className="p-6 rounded-lg">
-      <h3 className="font-semibold text-gray-700 mb-4 text-lg">
-        Health & Hygiene Videos
-      </h3>
-
-      {videoLoading ? (
-        <SectionLoader text="Loading videos..." />
-      ) : (
-        <div className="grid md:grid-cols-2 gap-4">
-          {videos.map((video) => (
-            <div
-              key={video.id.videoId || video.id.channelId}
-              className="relative aspect-w-16 aspect-h-9"
-            >
-              <iframe
-                className="w-full h-64 rounded"
-                src={`https://www.youtube.com/embed/${video.id.videoId}`}
-                title={video.snippet.title}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                onLoad={() => setVideoLoading(false)}
-              />
-              <p className="mt-2 text-sm font-medium text-gray-700">
-                {video.snippet.title}
-              </p>
+            {/* ✅ QR Section */}
+            <div className="grid md:grid-cols-2 gap-6 mt-40 ml-60 items-stretch">
+              <div className="flex flex-col w-1/2 items-center mt-20 justify-center rounded-lg p-6">
+                <QRDisplay userId={user?._id} />
+                <h3 className="font-semibold text-gray-700 mt-4 text-lg">
+                  Your Health QR
+                </h3>
+              </div>
+              <div className="flex flex-col -ml-36 mr-36 mt-10 justify-center rounded-lg p-6">
+                <h3 className="font-semibold text-gray-700 mb-3 text-4xl">
+                  How to Use Your QR
+                </h3>
+                <p className="text-gray-600 text-lg leading-relaxed">
+                  Show this QR code to your nearest doctor to securely share your health records.
+                </p>
+                <p className="text-gray-600 text-base mt-3 leading-relaxed">
+                  Carry it during checkups or emergencies for instant access to your past treatments.
+                </p>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
 
-    {/* ✅ Nearby Hospitals */}
-    <div className="grid md:grid-cols-2 gap-6 mt-6 items-stretch">
-      {/* Left: Map */}
-      <div className="flex flex-col justify-center rounded-lg p-6">
-        <h3 className="font-semibold text-gray-700 mb-4 text-lg">
-          Nearby Hospitals
-        </h3>
-        <div className="relative">
-          {position ? (
-            <>
-              {mapLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-[1000]">
-                  <SectionLoader text="Loading map..." />
+            {/* ✅ AI Assistant */}
+            <div className="p-10 rounded-2xl mt-6 flex items-center justify-between bg-yellow-100 min-h-[90vh]">
+              <div className="max-w-xl flex-1 pr-6">
+                <h3 className="font-bold text-gray-800 text-3xl mb-4">
+                  🤖 Your AI Health Assistant
+                </h3>
+                <p className="text-gray-700 leading-relaxed mb-4 text-lg">
+                  Meet your personal AI-powered Health Companion!
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-gray-700 text-base mb-6">
+                  <li>Instant home remedies</li>
+                  <li>Yoga & meditation video suggestions</li>
+                  <li>Daily wellness health tips</li>
+                  <li>Natural healing guidance</li>
+                </ul>
+                <p className="text-gray-600 text-base mb-6">
+                  Remember: It’s not a replacement for professional advice.
+                </p>
+                <button
+                  onClick={() => navigate("/ai-chatbot")}
+                  className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105"
+                >
+                  Start Chatting with AI
+                </button>
+              </div>
+              <div className="flex-shrink-0 animate-bounce">
+                <img
+                  src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png"
+                  alt="AI Assistant"
+                  className="w-64 h-64 object-contain"
+                />
+              </div>
+            </div>
+
+            {/* ✅ Health Videos */}
+            <div className="p-6 rounded-lg">
+              <h3 className="font-semibold text-gray-700 mb-4 text-lg">
+                Health & Hygiene Videos
+              </h3>
+              {videoLoading ? (
+                <SectionLoader text="Loading videos..." />
+              ) : (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {videos.map((video) => (
+                    <div
+                      key={video.id.videoId || video.id.channelId}
+                      className="relative aspect-w-16 aspect-h-9"
+                    >
+                      <iframe
+                        className="w-full h-64 rounded"
+                        src={`https://www.youtube.com/embed/${video.id.videoId}`}
+                        title={video.snippet.title}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        onLoad={() => setVideoLoading(false)}
+                      />
+                      <p className="mt-2 text-sm font-medium text-gray-700">
+                        {video.snippet.title}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               )}
-              <MapContainer
-                center={position}
-                zoom={13}
-                style={{ height: "300px", width: "100%" }}
-                className="rounded"
-                whenReady={() => setMapLoading(false)}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <Marker position={position}>
-                  <Popup>Your Location</Popup>
-                </Marker>
-
-                {hospitals.map((hospital) => (
-                  <Marker
-                    key={hospital.id}
-                    position={[hospital.lat, hospital.lon]}
-                    eventHandlers={{ click: () => setSelectedHospital(hospital) }}
-                  >
-                    <Popup>{hospital.name}</Popup>
-                  </Marker>
-                ))}
-
-                {selectedHospital && (
-                  <RoutingMachine position={position} hospital={selectedHospital} />
-                )}
-              </MapContainer>
-            </>
-          ) : (
-            <p className="text-gray-500">Fetching your location...</p>
-          )}
-        </div>
-      </div>
-
-      {/* Right: Hospital List */}
-      <div className="flex flex-col rounded-lg p-6">
-        <h3 className="font-semibold text-gray-700 mb-3 text-lg">
-          Hospitals Nearby
-        </h3>
-
-        <div className="relative overflow-y-auto max-h-72 space-y-3 pr-2">
-          {mapLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-[1000]">
-              <SectionLoader text="Loading hospitals..." />
             </div>
-          )}
 
-          {!mapLoading && hospitals.length > 0 ? (
-            hospitals.map((hospital) => (
-              <button
-                key={hospital.id}
-                onClick={() => setSelectedHospital(hospital)}
-                className={`w-full text-left p-2 rounded hover:bg-blue-100 ${
-                  selectedHospital?.id === hospital.id
-                    ? "bg-blue-200 font-semibold"
-                    : "bg-gray-50"
-                }`}
-              >
-                {hospital.name}
-              </button>
-            ))
-          ) : !mapLoading ? (
-            <p className="text-gray-500 text-center">Loading Hospitals...</p>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  </div>
-</main>
+            {/* ✅ Immigrant Welfare News */}
+            <div className="p-6 rounded-lg bg-gray-50">
+              <h3 className="text-2xl font-bold mb-4 text-gray-800">
+                Immigrant Welfare News
+              </h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                {news.map((item, index) => (
+                  <div
+                    key={index}
+                    className="p-4 border rounded-lg shadow-md bg-white hover:shadow-lg transition"
+                  >
+                    <h4 className="text-lg font-semibold">{item.title}</h4>
+                    <p className="text-sm text-gray-600">{item.description}</p>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline mt-2 block"
+                    >
+                      Read more
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
 
+            {/* ✅ Nearby Hospitals */}
+            <div className="grid md:grid-cols-2 gap-6 mt-6 items-stretch">
+              <div className="flex flex-col justify-center rounded-lg p-6">
+                <h3 className="font-semibold text-gray-700 mb-4 text-lg">
+                  Nearby Hospitals
+                </h3>
+                <div className="relative">
+                  {position ? (
+                    <>
+                      {mapLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-[1000]">
+                          <SectionLoader text="Loading map..." />
+                        </div>
+                      )}
+                      <MapContainer
+                        center={position}
+                        zoom={13}
+                        style={{ height: "300px", width: "100%" }}
+                        className="rounded"
+                        whenReady={() => setMapLoading(false)}
+                      >
+                        <TileLayer
+                          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                        <Marker position={position}>
+                          <Popup>Your Location</Popup>
+                        </Marker>
+                        {hospitals.map((hospital) => (
+                          <Marker
+                            key={hospital.id}
+                            position={[hospital.lat, hospital.lon]}
+                            eventHandlers={{
+                              click: () => setSelectedHospital(hospital),
+                            }}
+                          >
+                            <Popup>{hospital.name}</Popup>
+                          </Marker>
+                        ))}
+                        {selectedHospital && (
+                          <RoutingMachine position={position} hospital={selectedHospital} />
+                        )}
+                      </MapContainer>
+                    </>
+                  ) : (
+                    <p className="text-gray-500">Fetching your location...</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col rounded-lg p-6">
+                <h3 className="font-semibold text-gray-700 mb-3 text-lg">
+                  Hospitals Nearby
+                </h3>
+                <div className="relative overflow-y-auto max-h-72 space-y-3 pr-2">
+                  {mapLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-[1000]">
+                      <SectionLoader text="Loading hospitals..." />
+                    </div>
+                  )}
+                  {!mapLoading && hospitals.length > 0 ? (
+                    hospitals.map((hospital) => (
+                      <button
+                        key={hospital.id}
+                        onClick={() => setSelectedHospital(hospital)}
+                        className={`w-full text-left p-2 rounded hover:bg-blue-100 ${
+                          selectedHospital?.id === hospital.id
+                            ? "bg-blue-200 font-semibold"
+                            : "bg-gray-50"
+                        }`}
+                      >
+                        {hospital.name}
+                      </button>
+                    ))
+                  ) : !mapLoading ? (
+                    <p className="text-gray-500 text-center">Loading Hospitals...</p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
