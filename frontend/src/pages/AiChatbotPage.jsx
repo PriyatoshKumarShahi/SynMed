@@ -1,20 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import API from "../utils/api";
 import Navbar from "../components/Navbar";
+import { toast } from "react-toastify";
 
 export default function AiChatbotPage() {
-  const [chatSessions, setChatSessions] = useState(() => {
-    const saved = localStorage.getItem("chatSessions");
-    if (!saved) return [];
-    
-    const parsed = JSON.parse(saved);
-    // Auto-delete chats older than 7 days
-    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    return parsed.filter((session) => new Date(session.lastUpdated).getTime() > weekAgo);
-  });
-
+  // Get user ID (you might get this from auth context/localStorage)
+  const userId = localStorage.getItem("userId") || `user-${Date.now()}`;
+  
+  const [chatSessions, setChatSessions] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [messages, setMessages] = useState([
     { 
@@ -25,70 +20,142 @@ export default function AiChatbotPage() {
   ]);
   const [input, setInput] = useState("");
   const [loadingReply, setLoadingReply] = useState(false);
+  
+  // Speech recognition states
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const recognitionRef = useRef(null);
+  const speechSynthesisRef = useRef(null);
 
-  // Save chat sessions to localStorage
+  // Save userId to localStorage if it's new
   useEffect(() => {
-    localStorage.setItem("chatSessions", JSON.stringify(chatSessions));
-  }, [chatSessions]);
+    if (!localStorage.getItem("userId")) {
+      localStorage.setItem("userId", userId);
+    }
+  }, [userId]);
 
-  // Generate a title from the first user message
-  const generateTitle = (message) => {
-    const words = message.trim().split(' ');
-    return words.slice(0, 5).join(' ') + (words.length > 5 ? '...' : '');
-  };
+  // Load chat sessions from database
+  useEffect(() => {
+    loadChatSessions();
+    initializeSpeechRecognition();
+  }, []);
 
-  // Create a new chat session
-  const createNewSession = (userMessage, botResponse) => {
-    const sessionId = Date.now().toString();
-    const title = generateTitle(userMessage);
-    const newSession = {
-      id: sessionId,
-      title,
-      messages: [
-        { sender: "bot", text: "👋 Hi, I'm your AI Health Assistant! Tell me your symptoms and I'll suggest home remedies, yoga, or meditation videos.", time: new Date().toISOString() },
-        { sender: "user", text: userMessage, time: new Date().toISOString() },
-        { sender: "bot", text: botResponse, time: new Date().toISOString() }
-      ],
-      lastUpdated: new Date().toISOString()
-    };
-    
-    setChatSessions(prev => [newSession, ...prev]);
-    setCurrentSessionId(sessionId);
-    return newSession;
-  };
-
-  // Update existing session
-  const updateSession = (sessionId, newMessages) => {
-    setChatSessions(prev => 
-      prev.map(session => 
-        session.id === sessionId 
-          ? { ...session, messages: newMessages, lastUpdated: new Date().toISOString() }
-          : session
-      )
-    );
-  };
-
-  // Load a chat session
-  const loadChatSession = (sessionId) => {
-    const session = chatSessions.find(s => s.id === sessionId);
-    if (session) {
-      setMessages(session.messages);
-      setCurrentSessionId(sessionId);
+  // Load chat sessions from database
+  const loadChatSessions = async () => {
+    try {
+      const response = await API.get(`/chatbot/sessions/${userId}`);
+      setChatSessions(response.data.sessions || []);
+    } catch (error) {
+      console.error("Error loading chat sessions:", error);
     }
   };
 
-  // Delete a chat session
-  const deleteSession = (sessionId) => {
-    setChatSessions(prev => prev.filter(s => s.id !== sessionId));
-    if (currentSessionId === sessionId) {
-      setCurrentSessionId(null);
-      setMessages([
-        { 
-          sender: "bot", 
-          text: "👋 Hi, I'm your AI Health Assistant! Tell me your symptoms and I'll suggest home remedies, yoga, or meditation videos.", 
-          time: new Date().toISOString() 
-        }
-      ]);
+  // Initialize Speech Recognition
+  const initializeSpeechRecognition = () => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  };
+
+  // Start listening
+  const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      recognitionRef.current.start();
+    }
+  };
+
+  // Stop listening
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+    }
+  };
+
+  // Text to Speech
+  const speakText = (text) => {
+    if ('speechSynthesis' in window) {
+      // Stop any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      
+      speechSynthesisRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Stop speaking
+  const stopSpeaking = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  // Load a chat session from database
+  const loadChatSession = async (sessionId) => {
+    try {
+      const response = await API.get(`/chatbot/session/${sessionId}`);
+      if (response.data.session) {
+        setMessages(response.data.session.messages);
+        setCurrentSessionId(sessionId);
+      }
+    } catch (error) {
+      console.error("Error loading chat session:", error);
+    }
+  };
+
+  // Delete a chat session from database
+  const deleteSession = async (sessionId) => {
+    try {
+      await API.delete(`/chatbot/session/${sessionId}`);
+      setChatSessions(prev => prev.filter(s => s.sessionId !== sessionId));
+      
+      if (currentSessionId === sessionId) {
+        setCurrentSessionId(null);
+        setMessages([
+          { 
+            sender: "bot", 
+            text: "👋 Hi, I'm your AI Health Assistant! Tell me your symptoms and I'll suggest home remedies, yoga, or meditation videos.", 
+            time: new Date().toISOString() 
+          }
+        ]);
+      }
+      toast.success("Chat deleted successfully!")
+    } catch (error) {
+      toast.error("Failed to delete chat!")
+      console.error("Error deleting session:", error);
     }
   };
 
@@ -115,27 +182,35 @@ export default function AiChatbotPage() {
     setLoadingReply(true);
 
     try {
-      const res = await API.post("/chatbot/chat", { message: input });
-      const botMsg = { sender: "bot", text: res.data.reply, time: new Date().toISOString() };
+      const isNewSession = !currentSessionId;
+      const sessionId = currentSessionId || Date.now().toString();
+      
+      const response = await API.post("/chatbot/chat", { 
+        message: input,
+        userId,
+        sessionId,
+        isNewSession
+      });
+
+      const botMsg = { sender: "bot", text: response.data.reply, time: new Date().toISOString() };
       const finalMessages = [...newMessages, botMsg];
       setMessages(finalMessages);
 
-      // If this is a new chat (no current session), create a new session
-      if (!currentSessionId) {
-        createNewSession(input, res.data.reply);
-      } else {
-        // Update existing session
-        updateSession(currentSessionId, finalMessages);
+      // If new session was created, update the UI
+      if (isNewSession && response.data.sessionId) {
+        setCurrentSessionId(response.data.sessionId);
+        // Reload sessions to show the new one
+        loadChatSessions();
       }
+
+      // Auto-speak the bot response (optional)
+      // speakText(response.data.reply);
+      
     } catch (err) {
       console.error(err);
       const errorMsg = { sender: "bot", text: "⚠️ Error getting response", time: new Date().toISOString() };
       const finalMessages = [...newMessages, errorMsg];
       setMessages(finalMessages);
-      
-      if (currentSessionId) {
-        updateSession(currentSessionId, finalMessages);
-      }
     } finally {
       setLoadingReply(false);
     }
@@ -176,15 +251,15 @@ export default function AiChatbotPage() {
               <div className="space-y-2">
                 {chatSessions.map((session) => (
                   <div
-                    key={session.id}
+                    key={session.sessionId}
                     className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                      currentSessionId === session.id 
+                      currentSessionId === session.sessionId 
                         ? 'bg-blue-100 border border-blue-300' 
                         : 'bg-white border border-gray-200 hover:bg-gray-100'
                     }`}
                   >
                     <div 
-                      onClick={() => loadChatSession(session.id)}
+                      onClick={() => loadChatSession(session.sessionId)}
                       className="flex-1 min-w-0"
                     >
                       <p className="font-medium text-gray-900 truncate text-sm">
@@ -197,7 +272,7 @@ export default function AiChatbotPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteSession(session.id);
+                        deleteSession(session.sessionId);
                       }}
                       className="opacity-0 group-hover:opacity-100 ml-2 p-1 text-red-500 hover:text-red-700 transition-all"
                       title="Delete chat"
@@ -214,56 +289,80 @@ export default function AiChatbotPage() {
         </aside>
 
         {/* Chat Container */}
-        <main className="flex-1 flex flex-col mt-14 bg-white ml-80">
+        <main className="flex-1 flex flex-col mt-12 bg-white ml-80">
           {/* Chat Messages */}
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="w-full space-y-4">
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex   ${msg.sender === "user" ? "justify-end " : "justify-start"}`}
                 >
-                  <div
-                    className={`p-4 rounded-2xl ${
-                      msg.sender === "user"
-                        ? "bg-gray-100 text-gray-800 w-2/5 max-w-4xl"
-                        : "bg-gray-100 text-gray-900 border border-gray-200 w-4/5 max-w-4xl"
-                    }`}
-                  >
+                  <div className="flex  items-start space-x-2 max-w-[80%]">
+                    <div
+                      className={`p-1  rounded-2xl ${
+                        msg.sender === "user"
+                          ? "bg-gray-100 text-gray "
+                          : "bg-gray-100 text-gray-900 border border-gray-200"
+                      }`}
+                    >
                     {msg.sender === "bot" ? (
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          h1: (props) => <h1 className="text-xl font-bold my-2" {...props} />,
-                          h2: (props) => <h2 className="text-lg font-bold my-2" {...props} />,
-                          h3: (props) => <h3 className="text-md font-bold my-2" {...props} />,
-                          p: (props) => <p className="my-1 leading-relaxed" {...props} />,
-                          ul: (props) => <ul className="list-disc list-inside my-2" {...props} />,
-                          ol: (props) => <ol className="list-decimal list-inside my-2" {...props} />,
-                          li: (props) => <li className="my-1" {...props} />,
-                          strong: (props) => <strong className="font-semibold" {...props} />,
-                          em: (props) => <em className="italic" {...props} />,
-                          code: (props) => <code className="bg-gray-200 px-1 py-0.5 rounded text-sm" {...props} />,
-                        }}
-                      >
-                        {msg.text}
-                      </ReactMarkdown>
-                    ) : (
-                      <div className="whitespace-pre-wrap">{msg.text}</div>
-                    )}
-                    <div className={`text-xs mt-2 ${msg.sender === "user" ? "text-gray-400" : "text-gray-500"}`}>
-                      {new Date(msg.time).toLocaleTimeString([], { 
-                        hour: "2-digit", 
-                        minute: "2-digit" 
-                      })}
+  <ReactMarkdown
+    remarkPlugins={[remarkGfm]}
+    components={{
+      h1: (props) => <h1 className="text-xl font-bold my-2" {...props} />,
+      h2: (props) => <h2 className="text-lg font-bold my-2" {...props} />,
+      h3: (props) => <h3 className="text-md font-bold my-2" {...props} />,
+      p: (props) => <p className="my-1 leading-relaxed" {...props} />,
+      ul: (props) => <ul className="list-disc list-inside my-2" {...props} />,
+      ol: (props) => <ol className="list-decimal list-inside my-2" {...props} />,
+      li: (props) => <li className="my-1" {...props} />,
+      strong: (props) => <strong className="font-semibold" {...props} />,
+      em: (props) => <em className="italic" {...props} />,
+      code: (props) => <code className="bg-gray-200 px-1 py-0.5 rounded text-sm" {...props} />,
+    }}
+  >
+    {msg.text}
+  </ReactMarkdown>
+) : (
+  <div 
+    className="whitespace-pre-wrap  text-gray px-2 py- rounded-1xl max-w-[100%] "
+  >
+    {msg.text}
+  </div>
+)}
+
+                      <div className={`text-xs mt-1 ${msg.sender === "user" ? "text-gray-500 text-right" : "text-gray-500"}`}>
+  {new Date(msg.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+</div>
+
                     </div>
+                    
+                    {/* Speaker button for bot messages */}
+                    {msg.sender === "bot" && (
+                      <button
+                        onClick={() => isSpeaking ? stopSpeaking() : speakText(msg.text)}
+                        className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
+                        title={isSpeaking ? "Stop speaking" : "Read aloud"}
+                      >
+                        {isSpeaking ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-6.219-8.56" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 9v6l4-3-4-3z" />
+                          </svg>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
               
               {loadingReply && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 border border-gray-200 p-4 rounded-2xl w-4/5 max-w-4xl">
+                  <div className="bg-gray-100 border border-gray-200 p-4 rounded-2xl max-w-[80%]">
                     <div className="flex items-center space-x-2">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
@@ -282,20 +381,43 @@ export default function AiChatbotPage() {
           <div className="border-t border-gray-200 bg-white p-4">
             <div className="max-w-4xl mx-auto">
               <div className="flex items-end space-x-3">
+                {/* Microphone Button */}
+                <button
+                  onClick={isListening ? stopListening : startListening}
+                  className={`p-3 rounded-full transition-colors ${
+                    isListening 
+                      ? 'bg-red-600 text-white hover:bg-red-700' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  title={isListening ? "Stop listening" : "Start voice input"}
+                >
+                  {isListening ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-6.219-8.56" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                  )}
+                </button>
+
                 <div className="flex-1">
                   <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Enter your symptoms or health questions..."
+                    placeholder={isListening ? "Listening..." : "Enter your symptoms or health questions..."}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none max-h-32"
                     rows="1"
                     style={{ minHeight: '44px' }}
+                    disabled={isListening}
                   />
                 </div>
+                
                 <button
                   onClick={sendMessage}
-                  disabled={!input.trim() || loadingReply}
+                  disabled={!input.trim() || loadingReply || isListening}
                   className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center space-x-2"
                 >
                   <span>Send</span>
