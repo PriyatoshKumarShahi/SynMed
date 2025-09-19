@@ -223,24 +223,29 @@ export default function Dashboard() {
       description:
         "The Ministry of Skill Development has launched training programs for migrants to boost employment.",
       url: "https://www.msde.gov.in/",
+      image:
+        "https://ccps.digifootprint.gov.in/static//uploads/2025/04/806a4067aebe65018c15da7d6bf86779.png",
     },
     {
       title: "Free Healthcare for Migrants",
       description:
         "State governments and NGOs are organizing free health check-up camps for migrant workers.",
-      url: "https://www.nhp.gov.in/",
+      url: "https://www.shakshamfoundation.org/healthcare-ngos-in-india-free-medical-camps-shaksham-foundation/",
+      image: "https://azbigmedia.com/wp-content/uploads/2023/11/Free-Medical-Camp.jpg",
     },
     {
       title: "Affordable Housing Subsidy for Migrants",
       description:
         "Pradhan Mantri Awas Yojana (PMAY) offers housing subsidies, including for migrant families.",
       url: "https://pmaymis.gov.in/",
+      image: "https://pmaymis.gov.in/assets/img/banner/10-Years-of-PMAY-U-Banner.jpg",
     },
     {
       title: "Scholarships for Children of Migrants",
       description:
         "National Scholarship Portal (NSP) provides financial support for children of migrants.",
       url: "https://scholarships.gov.in/",
+      image: "https://scholarships.gov.in/public/assets2425/images/banner/Ministry-of-labour.png",
     },
   ];
 
@@ -288,10 +293,12 @@ export default function Dashboard() {
                   How to Use Your QR
                 </h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
-                  Show this QR code to your nearest doctor to securely share your health records.
+                  Show this QR code to your nearest doctor to securely share your
+                  health records.
                 </p>
                 <p className="text-gray-600 text-base mt-3 leading-relaxed">
-                  Carry it during checkups or emergencies for instant access to your past treatments.
+                  Carry it during checkups or emergencies for instant access to
+                  your past treatments.
                 </p>
               </div>
             </div>
@@ -373,7 +380,19 @@ export default function Dashboard() {
                     key={index}
                     className="p-4 border rounded-lg shadow-md bg-white hover:shadow-lg transition"
                   >
-                    <h4 className="text-lg font-semibold">{item.title}</h4>
+                    <h4 className="text-lg font-semibold mb-2">
+                      {item.title}
+                    </h4>
+
+                    {/* 🖼️ Image goes here */}
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-40 object-cover rounded mb-3"
+                      />
+                    )}
+
                     <p className="text-sm text-gray-600">{item.description}</p>
                     <a
                       href={item.url}
@@ -428,7 +447,10 @@ export default function Dashboard() {
                           </Marker>
                         ))}
                         {selectedHospital && (
-                          <RoutingMachine position={position} hospital={selectedHospital} />
+                          <RoutingMachine
+                            position={position}
+                            hospital={selectedHospital}
+                          />
                         )}
                       </MapContainer>
                     </>
@@ -462,7 +484,9 @@ export default function Dashboard() {
                       </button>
                     ))
                   ) : !mapLoading ? (
-                    <p className="text-gray-500 text-center">Loading Hospitals...</p>
+                    <p className="text-gray-500 text-center">
+                      Loading Hospitals...
+                    </p>
                   ) : null}
                 </div>
               </div>
