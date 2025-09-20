@@ -14,7 +14,7 @@ export default function AiChatbotPage() {
   const [messages, setMessages] = useState([
     { 
       sender: "bot", 
-      text: "👋 Hi, I'm your AI Health Assistant! Tell me your symptoms and I'll suggest home remedies, yoga, or meditation videos.", 
+      text: "Hello there! I'm your AI Health and Wellness Assistant. I'm here to support you with anything from physical health concerns and stress management to emotional wellbeing and lifestyle guidance. How can I help you today?", 
       time: new Date().toISOString() 
     }
   ]);
@@ -47,6 +47,7 @@ export default function AiChatbotPage() {
       setChatSessions(response.data.sessions || []);
     } catch (error) {
       console.error("Error loading chat sessions:", error);
+      toast.error("Failed to load chat history");
     }
   };
 
@@ -73,18 +74,28 @@ export default function AiChatbotPage() {
       recognitionRef.current.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
         setIsListening(false);
+        if (event.error === 'not-allowed') {
+          toast.error("Please allow microphone access to use voice input");
+        }
       };
 
       recognitionRef.current.onend = () => {
         setIsListening(false);
       };
+    } else {
+      console.log("Speech recognition not supported in this browser");
     }
   };
 
   // Start listening
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
-      recognitionRef.current.start();
+      try {
+        recognitionRef.current.start();
+      } catch (error) {
+        console.error("Error starting speech recognition:", error);
+        toast.error("Voice input not available");
+      }
     }
   };
 
@@ -95,23 +106,39 @@ export default function AiChatbotPage() {
     }
   };
 
-  // Text to Speech
+  // Text to Speech - Clean text for better speech
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
       // Stop any ongoing speech
       window.speechSynthesis.cancel();
       
-      const utterance = new SpeechSynthesisUtterance(text);
+      // Clean text for speech (remove markdown formatting)
+      const cleanText = text
+        .replace(/#{1,6}\s/g, '') // Remove headers
+        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+        .replace(/\*(.*?)\*/g, '$1') // Remove italic
+        .replace(/`(.*?)`/g, '$1') // Remove code
+        .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Remove links
+        .replace(/^\s*[-*+]\s/gm, '') // Remove bullet points
+        .replace(/^\s*\d+\.\s/gm, '') // Remove numbered lists
+        .trim();
+      
+      const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.rate = 0.8;
       utterance.pitch = 1;
       utterance.volume = 1;
       
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+      
+      };
       
       speechSynthesisRef.current = utterance;
       window.speechSynthesis.speak(utterance);
+    } else {
+      toast.error("Text-to-speech not supported in this browser");
     }
   };
 
@@ -133,6 +160,7 @@ export default function AiChatbotPage() {
       }
     } catch (error) {
       console.error("Error loading chat session:", error);
+      toast.error("Failed to load conversation");
     }
   };
 
@@ -147,14 +175,14 @@ export default function AiChatbotPage() {
         setMessages([
           { 
             sender: "bot", 
-            text: "👋 Hi, I'm your AI Health Assistant! Tell me your symptoms and I'll suggest home remedies, yoga, or meditation videos.", 
+            text: "Hello there! I'm your AI Health and Wellness Assistant. I'm here to support you with anything from physical health concerns and stress management to emotional wellbeing and lifestyle guidance. How can I help you today?", 
             time: new Date().toISOString() 
           }
         ]);
       }
-      toast.success("Chat deleted successfully!")
+      toast.success("Conversation deleted successfully!");
     } catch (error) {
-      toast.error("Failed to delete chat!")
+      toast.error("Failed to delete conversation");
       console.error("Error deleting session:", error);
     }
   };
@@ -165,11 +193,20 @@ export default function AiChatbotPage() {
     setMessages([
       { 
         sender: "bot", 
-        text: "👋 Hi, I'm your AI Health Assistant! Tell me your symptoms and I'll suggest home remedies, yoga, or meditation videos.", 
+        text: "Hello there! I'm your AI Health and Wellness Assistant. I'm here to support you with anything from physical health concerns and stress management to emotional wellbeing and lifestyle guidance. How can I help you today?", 
         time: new Date().toISOString() 
       }
     ]);
   };
+
+  const messagesEndRef = useRef(null);
+
+// Scroll to bottom when messages change
+useEffect(() => {
+  if (messagesEndRef.current) {
+    messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }
+}, [messages]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -202,15 +239,17 @@ export default function AiChatbotPage() {
         // Reload sessions to show the new one
         loadChatSessions();
       }
-
-      // Auto-speak the bot response (optional)
-      // speakText(response.data.reply);
       
     } catch (err) {
       console.error(err);
-      const errorMsg = { sender: "bot", text: "⚠️ Error getting response", time: new Date().toISOString() };
+      const errorMsg = { 
+        sender: "bot", 
+        text: "I apologize, but I'm having trouble connecting right now. Please try again in a moment. I'm here to help whenever you're ready.", 
+        time: new Date().toISOString() 
+      };
       const finalMessages = [...newMessages, errorMsg];
       setMessages(finalMessages);
+      toast.error("Connection error. Please try again.");
     } finally {
       setLoadingReply(false);
     }
@@ -237,16 +276,16 @@ export default function AiChatbotPage() {
               onClick={startNewChat}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              + New Chat
+              + New Conversation
             </button>
           </div>
 
           {/* Chat History */}
           <div className="flex-1 overflow-y-auto p-4">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Chat History</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">Conversation History</h2>
             
             {chatSessions.length === 0 ? (
-              <p className="text-gray-500 text-sm">No chat history yet</p>
+              <p className="text-gray-500 text-sm">No conversations yet. Start chatting to build your history!</p>
             ) : (
               <div className="space-y-2">
                 {chatSessions.map((session) => (
@@ -272,10 +311,12 @@ export default function AiChatbotPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteSession(session.sessionId);
+                        if (window.confirm("Are you sure you want to delete this conversation?")) {
+                          deleteSession(session.sessionId);
+                        }
                       }}
                       className="opacity-0 group-hover:opacity-100 ml-2 p-1 text-red-500 hover:text-red-700 transition-all"
-                      title="Delete chat"
+                      title="Delete conversation"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -289,91 +330,126 @@ export default function AiChatbotPage() {
         </aside>
 
         {/* Chat Container */}
-        <main className="flex-1 flex flex-col mt-12 bg-white ml-80">
+        <main className="flex-1 flex flex-col mt-14 bg-white ml-80">
           {/* Chat Messages */}
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="w-full space-y-4">
               {messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex   ${msg.sender === "user" ? "justify-end " : "justify-start"}`}
-                >
-                  <div className="flex  items-start space-x-2 max-w-[80%]">
-                    <div
-                      className={`p-1  rounded-2xl ${
-                        msg.sender === "user"
-                          ? "bg-gray-100 text-gray "
-                          : "bg-gray-100 text-gray-900 border border-gray-200"
-                      }`}
-                    >
-                    {msg.sender === "bot" ? (
-  <ReactMarkdown
-    remarkPlugins={[remarkGfm]}
-    components={{
-      h1: (props) => <h1 className="text-xl font-bold my-2" {...props} />,
-      h2: (props) => <h2 className="text-lg font-bold my-2" {...props} />,
-      h3: (props) => <h3 className="text-md font-bold my-2" {...props} />,
-      p: (props) => <p className="my-1 leading-relaxed" {...props} />,
-      ul: (props) => <ul className="list-disc list-inside my-2" {...props} />,
-      ol: (props) => <ol className="list-decimal list-inside my-2" {...props} />,
-      li: (props) => <li className="my-1" {...props} />,
-      strong: (props) => <strong className="font-semibold" {...props} />,
-      em: (props) => <em className="italic" {...props} />,
-      code: (props) => <code className="bg-gray-200 px-1 py-0.5 rounded text-sm" {...props} />,
-    }}
+               <div
+  key={idx}
+  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+>
+  <div
+    className={`flex items-start space-x-3 ${
+      msg.sender === "user" ? "max-w-[50%]" : "max-w-[80%]"
+    }`}
   >
-    {msg.text}
-  </ReactMarkdown>
-) : (
-  <div 
-    className="whitespace-pre-wrap  text-gray px-2 py- rounded-1xl max-w-[100%] "
-  >
-    {msg.text}
-  </div>
-)}
+    <div
+      className={`p-2 rounded-2xl ${
+        msg.sender === "user"
+          ? "bg-transparent text-black border border-blue-300"
+          : "bg-gray-100 text-gray-900 border border-gray-200"
+      }`}
+    >
+      {msg.sender === "bot" ? (
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            h1: (props) => <h1 className="text-xl font-bold my-3" {...props} />,
+            h2: (props) => <h2 className="text-lg font-bold my-2 text-gray-700" {...props} />,
+            h3: (props) => <h3 className="text-md font-bold my-2" {...props} />,
+            p: (props) => <p className="my-2 leading-relaxed" {...props} />,
+            ul: (props) => <ul className="list-disc list-inside my-2 space-y-1" {...props} />,
+            ol: (props) => <ol className="list-decimal list-inside my-2 space-y-1" {...props} />,
+            li: (props) => <li className="my-0.5" {...props} />,
+            strong: (props) => <strong className="font-semibold text-gray-800" {...props} />,
+            em: (props) => <em className="italic" {...props} />,
+            code: (props) => <code className="bg-gray-200 px-2 py-1 rounded text-sm" {...props} />,
+            blockquote: (props) => (
+              <blockquote className="border-l-4 border-blue-300 pl-4 italic my-2" {...props} />
+            ),
+          }}
+        >
+          {msg.text}
+        </ReactMarkdown>
+      ) : (
+        <div className="whitespace-pre-wrap">
+          {msg.text}
+        </div>
+      )}
 
-                      <div className={`text-xs mt-1 ${msg.sender === "user" ? "text-gray-500 text-right" : "text-gray-500"}`}>
-  {new Date(msg.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+      <div
+        className={`text-xs ${
+          msg.sender === "user" ? "text-gray-400" : "text-gray-500"
+        }`}
+      >
+        {new Date(msg.time).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </div>
+    </div>
+
+    {/* Speaker button for bot messages */}
+    {msg.sender === "bot" && (
+      <button
+        onClick={() =>
+          isSpeaking ? stopSpeaking() : speakText(msg.text)
+        }
+        className="p-2 text-gray-500 hover:text-blue-600 transition-colors rounded-full hover:bg-gray-100"
+        title={isSpeaking ? "Stop speaking" : "Read aloud"}
+      >
+        {isSpeaking ? (
+          <svg
+            className="w-5 h-5 animate-pulse"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 12a9 9 0 11-6.219-8.56"
+            />
+          </svg>
+        ) : (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 9v6l4-3-4-3z"
+            />
+          </svg>
+        )}
+      </button>
+    )}
+  </div>
 </div>
 
-                    </div>
-                    
-                    {/* Speaker button for bot messages */}
-                    {msg.sender === "bot" && (
-                      <button
-                        onClick={() => isSpeaking ? stopSpeaking() : speakText(msg.text)}
-                        className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
-                        title={isSpeaking ? "Stop speaking" : "Read aloud"}
-                      >
-                        {isSpeaking ? (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-6.219-8.56" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 9v6l4-3-4-3z" />
-                          </svg>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
               ))}
               
               {loadingReply && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 border border-gray-200 p-4 rounded-2xl max-w-[80%]">
+                  <div className="bg-gray-100 border border-gray-200 p-4 rounded-2xl max-w-[85%]">
                     <div className="flex items-center space-x-2">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
-                      <span className="text-gray-500 text-sm">AI is typing...</span>
+                      <span className="text-gray-600 text-sm">MediAssist is typing...</span>
                     </div>
                   </div>
                 </div>
               )}
+                <div ref={messagesEndRef} />
             </div>
           </div>
 
@@ -384,9 +460,9 @@ export default function AiChatbotPage() {
                 {/* Microphone Button */}
                 <button
                   onClick={isListening ? stopListening : startListening}
-                  className={`p-3 rounded-full transition-colors ${
+                  className={`p-3 mb-2 rounded-full transition-colors ${
                     isListening 
-                      ? 'bg-red-600 text-white hover:bg-red-700' 
+                      ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse' 
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                   title={isListening ? "Stop listening" : "Start voice input"}
@@ -407,10 +483,10 @@ export default function AiChatbotPage() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={isListening ? "Listening..." : "Enter your symptoms or health questions..."}
+                    placeholder={isListening ? "🎤 Listening..." : "Share what's on your mind - stress, health concerns, life questions, or anything else..."}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none max-h-32"
                     rows="1"
-                    style={{ minHeight: '44px' }}
+                    style={{ minHeight: '48px' }}
                     disabled={isListening}
                   />
                 </div>
@@ -418,7 +494,7 @@ export default function AiChatbotPage() {
                 <button
                   onClick={sendMessage}
                   disabled={!input.trim() || loadingReply || isListening}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center space-x-2"
+                  className="bg-blue-600 mb-2 text-white px-6 py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center space-x-2"
                 >
                   <span>Send</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

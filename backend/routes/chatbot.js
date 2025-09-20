@@ -103,10 +103,23 @@ router.delete("/session/:sessionId", async (req, res) => {
   }
 });
 
-// Main chat endpoint
+function isMedicalQuery(message) {
+  const medicalKeywords = [
+    "pain", "fever", "cough", "cold", "headache", "dizzy", "nausea", 
+    "vomit", "injury", "infection", "sore", "doctor", "medicine", 
+    "tablet", "capsule", "treatment", "symptom", "health problem",
+    "prescription", "diagnosis", "surgery", "fracture", "allergy"
+  ];
+  const lowerMsg = message.toLowerCase();
+  return medicalKeywords.some(word => lowerMsg.includes(word));
+}
+
 router.post("/chat", async (req, res) => {
   try {
     const { message, userId, sessionId, isNewSession } = req.body;
+
+    // ⚠️ Disclaimer text
+    const disclaimer = "\n\n⚠️ **Disclaimer:** This is only general advice and should not be considered a substitute for professional medical consultation. Please visit your nearest doctor and follow prescribed treatment.";
 
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" +
@@ -119,14 +132,29 @@ router.post("/chat", async (req, res) => {
             {
               parts: [
                 {
-                  text: `User symptoms: ${message}.
-Please provide a structured, easy-to-read response with:
-- Clear headings (H2/H3 style) for each section
-- Bullet points for remedies, yoga, and meditation
-- Short paragraphs for explanations
-- A disclaimer at the top
-- Proper spacing between headings and content
-Format the response in Markdown so it can be displayed in React with spacing.`
+                  text: `You are a compassionate AI Health and Wellness Assistant. Respond warmly and empathetically to the user's message: "${message}"
+
+**Your Role:**
+- Be a supportive companion for health, wellness, mental health, and general life guidance
+- Provide holistic support including physical, mental, and emotional wellbeing
+- Offer practical solutions, remedies, lifestyle advice, and emotional support
+- Be conversational, understanding, and non-judgmental
+
+**Response Guidelines:**
+- Start with acknowledgment and empathy
+- Provide structured, helpful advice using clear headings and bullet points
+- Include multiple approaches: physical remedies, mental health techniques, lifestyle changes
+- For stress/anxiety: Include breathing exercises, mindfulness, relaxation techniques
+- For physical symptoms: Suggest natural remedies, lifestyle modifications, when to see a doctor
+- For emotional concerns: Offer counseling techniques, coping strategies, self-care tips
+- Add disclaimer only if it’s a medical/physical health concern
+- End with encouragement and offer ongoing support
+
+**Format your response in Markdown with:**
+- Clear headings (## for main sections, ### for subsections)
+- Bullet points for actionable advice
+- Proper spacing between sections
+- Warm, conversational tone throughout`
                 },
               ],
             },
@@ -138,21 +166,25 @@ Format the response in Markdown so it can be displayed in React with spacing.`
     const data = await response.json();
     console.log("Gemini raw response:", JSON.stringify(data, null, 2));
 
-    const reply =
+    let reply =
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
       (data?.error?.message
-        ? `Gemini error: ${data.error.message}`
-        : "Sorry, I couldn't find a suggestion.");
+        ? `I apologize, but I'm experiencing some technical difficulties right now. ${data.error.message}. Please try again in a moment.`
+        : "I'm here to help, but I'm having trouble processing your message right now. Could you please try again?");
 
-    // If it's a new session, create it in database
+    // 👉 Append disclaimer only for medical-type queries
+    if (isMedicalQuery(message)) {
+      reply += disclaimer;
+    }
+
     if (isNewSession && userId) {
       const title = generateTitle(message);
       const newSessionId = sessionId || Date.now().toString();
-      
+
       const initialMessages = [
         { 
           sender: "bot", 
-          text: "👋 Hi, I'm your AI Health Assistant! Tell me your symptoms and I'll suggest home remedies, yoga, or meditation videos.", 
+          text: "Hello there! I'm your AI Health and Wellness Assistant. I'm here to support you with physical health, stress management, emotional wellbeing, and lifestyle guidance. How can I help you today?" + (isMedicalQuery(message) ? disclaimer : ""), 
           time: new Date()
         },
         { sender: "user", text: message, time: new Date() },
@@ -168,7 +200,7 @@ Format the response in Markdown so it can be displayed in React with spacing.`
       });
 
       await newSession.save();
-      
+
       res.json({ 
         reply, 
         sessionId: newSessionId,
@@ -176,7 +208,7 @@ Format the response in Markdown so it can be displayed in React with spacing.`
         session: newSession 
       });
     } 
-    // If existing session, update it
+    // Existing session
     else if (sessionId && userId) {
       const session = await ChatSession.findOne({ sessionId });
       if (session) {
@@ -196,11 +228,18 @@ Format the response in Markdown so it can be displayed in React with spacing.`
     }
   } catch (err) {
     console.error("Chatbot error:", err);
-    res.status(500).json({ error: "Failed to connect to AI service" });
+
+    const disclaimer = "\n\n⚠️ **Disclaimer:** This is only general advice and should not be considered a substitute for professional medical consultation. Please visit your nearest doctor and follow prescribed treatment.";
+
+    res.status(500).json({ 
+      error: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment." + disclaimer 
+    });
   }
 });
 
-// Cleanup old sessions (manual trigger - you can also set up a cron job)
+module.exports = router;
+
+
 router.delete("/cleanup/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
