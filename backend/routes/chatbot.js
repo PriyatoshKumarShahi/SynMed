@@ -103,20 +103,126 @@ router.delete("/session/:sessionId", async (req, res) => {
   }
 });
 
-function isMedicalQuery(message) {
-  const medicalKeywords = [
-    "pain", "fever", "cough", "cold", "headache", "dizzy", "nausea", 
-    "vomit", "injury", "infection", "sore", "doctor", "medicine", 
-    "tablet", "capsule", "treatment", "symptom", "health problem",
-    "prescription", "diagnosis", "surgery", "fracture", "allergy"
-  ];
+// Enhanced query categorization
+function categorizeQuery(message) {
   const lowerMsg = message.toLowerCase();
-  return medicalKeywords.some(word => lowerMsg.includes(word));
+  
+  // Physical symptoms/medical
+  const medicalKeywords = [
+    "fever", "temperature", "pain", "cough", "cold", "headache", "dizzy", "nausea", 
+    "vomit", "injury", "infection", "sore", "doctor", "medicine", "tablet", "capsule", 
+    "treatment", "symptom", "health problem", "prescription", "diagnosis", "surgery", 
+    "fracture", "allergy", "sick", "ill", "hurt", "ache", "swollen", "bleeding",
+    "rash", "itching", "breathing", "chest pain", "stomach", "diarrhea", "constipation"
+  ];
+  
+  // Mental health/emotional
+  const mentalHealthKeywords = [
+    "stress", "anxiety", "depression", "worried", "panic", "overwhelmed", "sad", 
+    "lonely", "angry", "frustrated", "mood", "emotional", "mental health", "therapy",
+    "counseling", "fear", "phobia", "trauma", "grief", "loss", "relationship", 
+    "breakup", "family issues", "work stress", "burnout", "insomnia", "sleep"
+  ];
+  
+  // Lifestyle/wellness
+  const lifestyleKeywords = [
+    "diet", "nutrition", "exercise", "fitness", "weight", "healthy lifestyle", 
+    "meditation", "yoga", "mindfulness", "habits", "routine", "energy", "tired",
+    "fatigue", "productivity", "motivation", "self care", "wellness"
+  ];
+  
+  // General conversation
+  const generalKeywords = [
+    "hello", "hi", "how are you", "what can you do", "help", "advice", "guidance",
+    "question", "curious", "wondering", "explain", "tell me", "information"
+  ];
+  
+  if (medicalKeywords.some(word => lowerMsg.includes(word))) {
+    return "medical";
+  } else if (mentalHealthKeywords.some(word => lowerMsg.includes(word))) {
+    return "mental_health";
+  } else if (lifestyleKeywords.some(word => lowerMsg.includes(word))) {
+    return "lifestyle";
+  } else if (generalKeywords.some(word => lowerMsg.includes(word))) {
+    return "general";
+  }
+  
+  return "general"; // Default
+}
+
+// Generate context-specific prompt
+function generatePrompt(message, category) {
+  const baseInstruction = `You are a compassionate AI Health and Wellness Assistant. Respond warmly and empathetically to the user's message: "${message}"`;
+  
+  let specificGuidance = "";
+  
+  switch(category) {
+    case "medical":
+      specificGuidance = `
+**Focus on Physical Health:**
+- Address the specific symptom or health concern mentioned
+- Provide practical home remedies and immediate relief measures
+- Suggest when to see a healthcare professional
+- Include lifestyle modifications related to the condition
+- Use clear headings like "Immediate Relief", "Home Remedies", "When to See a Doctor"
+- Be specific to the symptom mentioned`;
+      break;
+      
+    case "mental_health":
+      specificGuidance = `
+**Focus on Mental Health & Emotional Support:**
+- Address the emotional concern or stress mentioned
+- Provide coping strategies and mental health techniques
+- Include breathing exercises, mindfulness, or relaxation methods
+- Offer counseling approaches and self-care tips
+- Use headings like "Understanding Your Feelings", "Coping Strategies", "Self-Care Tips"
+- Be empathetic and supportive`;
+      break;
+      
+    case "lifestyle":
+      specificGuidance = `
+**Focus on Lifestyle & Wellness:**
+- Address the lifestyle aspect mentioned (diet, exercise, habits, etc.)
+- Provide practical lifestyle changes and wellness tips
+- Include sustainable habits and routine suggestions
+- Offer motivational guidance
+- Use headings related to the specific lifestyle area mentioned`;
+      break;
+      
+    case "general":
+    default:
+      specificGuidance = `
+**Provide General Guidance:**
+- Respond to the specific question or concern raised
+- Be conversational and helpful
+- Provide relevant information based on what they're asking
+- Keep response focused on their actual query`;
+      break;
+  }
+  
+  return `${baseInstruction}
+
+${specificGuidance}
+
+**Response Format:**
+- Use clear headings (## for main sections, ### for subsections)
+- Provide bullet points for actionable advice
+- Keep response focused and specific to their question
+- Maintain a warm, conversational tone
+- Format in Markdown with proper spacing`;
+}
+
+function isMedicalQuery(message) {
+  return categorizeQuery(message) === "medical";
 }
 
 router.post("/chat", async (req, res) => {
   try {
     const { message, userId, sessionId, isNewSession } = req.body;
+
+    // Categorize the query to provide targeted response
+    const queryCategory = categorizeQuery(message);
+    const prompt = generatePrompt(message, queryCategory);
 
     // ⚠️ Disclaimer text
     const disclaimer = "\n\n⚠️ **Disclaimer:** This is only general advice and should not be considered a substitute for professional medical consultation. Please visit your nearest doctor and follow prescribed treatment.";
@@ -132,29 +238,7 @@ router.post("/chat", async (req, res) => {
             {
               parts: [
                 {
-                  text: `You are a compassionate AI Health and Wellness Assistant. Respond warmly and empathetically to the user's message: "${message}"
-
-**Your Role:**
-- Be a supportive companion for health, wellness, mental health, and general life guidance
-- Provide holistic support including physical, mental, and emotional wellbeing
-- Offer practical solutions, remedies, lifestyle advice, and emotional support
-- Be conversational, understanding, and non-judgmental
-
-**Response Guidelines:**
-- Start with acknowledgment and empathy
-- Provide structured, helpful advice using clear headings and bullet points
-- Include multiple approaches: physical remedies, mental health techniques, lifestyle changes
-- For stress/anxiety: Include breathing exercises, mindfulness, relaxation techniques
-- For physical symptoms: Suggest natural remedies, lifestyle modifications, when to see a doctor
-- For emotional concerns: Offer counseling techniques, coping strategies, self-care tips
-- Add disclaimer only if it’s a medical/physical health concern
-- End with encouragement and offer ongoing support
-
-**Format your response in Markdown with:**
-- Clear headings (## for main sections, ### for subsections)
-- Bullet points for actionable advice
-- Proper spacing between sections
-- Warm, conversational tone throughout`
+                  text: prompt
                 },
               ],
             },
@@ -184,7 +268,7 @@ router.post("/chat", async (req, res) => {
       const initialMessages = [
         { 
           sender: "bot", 
-          text: "Hello there! I'm your AI Health and Wellness Assistant. I'm here to support you with physical health, stress management, emotional wellbeing, and lifestyle guidance. How can I help you today?" + (isMedicalQuery(message) ? disclaimer : ""), 
+          text: "Hello there! I'm your AI Health and Wellness Assistant. I'm here to support you with physical health, stress management, emotional wellbeing, and lifestyle guidance. How can I help you today?", 
           time: new Date()
         },
         { sender: "user", text: message, time: new Date() },
@@ -228,18 +312,13 @@ router.post("/chat", async (req, res) => {
     }
   } catch (err) {
     console.error("Chatbot error:", err);
-
-    const disclaimer = "\n\n⚠️ **Disclaimer:** This is only general advice and should not be considered a substitute for professional medical consultation. Please visit your nearest doctor and follow prescribed treatment.";
-
     res.status(500).json({ 
-      error: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment." + disclaimer 
+      error: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment."
     });
   }
 });
 
-module.exports = router;
-
-
+// Cleanup old sessions
 router.delete("/cleanup/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
