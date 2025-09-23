@@ -5,6 +5,10 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import VoiceCommands from './components/VoiceCommands';
+
+
+
 
 const PublicPage = React.lazy(() => import('./pages/PublicPage'));
 const SignUp = React.lazy(() => import('./pages/SignUp'));
@@ -14,7 +18,7 @@ const Profile = React.lazy(() => import('./pages/Profile'));
 const MedicalHistory = React.lazy(() => import('./pages/MedicalHistory'));
 const PublicRecord = React.lazy(() => import('./pages/PublicRecord'));
 const AiChatbotPage = React.lazy(() => import('./pages/AiChatbotPage'));
-const AdminPanel = React.lazy(() => import('./pages/AdminPanel')); // 👈 added
+const AdminPanel = React.lazy(() => import('./pages/AdminPanel'));
 
 export default function App() {
   return (
@@ -35,7 +39,11 @@ export default function App() {
           <Route path="/admin" element={<AdminPanel />} />
         </Routes>
 
+        {/* Toasts */}
         <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} />
+
+        {/* Voice Commands - always listening on all pages */}
+        <VoiceCommands />
       </Suspense>
     </AuthProvider>
   );

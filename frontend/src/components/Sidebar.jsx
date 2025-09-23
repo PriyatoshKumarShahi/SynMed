@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { User, FileText, TestTube2, Globe, ChevronLeft, ChevronRight, Stethoscope } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -16,6 +16,24 @@ export default function Sidebar({
 
   const handlePrescriptionClick = () => presInputRef.current.click();
   const handleTestClick = () => testInputRef.current.click();
+  
+useEffect(() => {
+  const handler = (e) => {
+    const action = e.detail; // get payload from CustomEvent
+    if (action === "prescription" && presInputRef.current) {
+      presInputRef.current.click(); // trigger hidden input
+    } else if (action === "test" && testInputRef.current) {
+      testInputRef.current.click(); // trigger hidden input
+    }
+  };
+
+  window.addEventListener("voice-upload", handler);
+  return () => window.removeEventListener("voice-upload", handler);
+}, []);
+
+
+
+
 
   return (
     <motion.aside
@@ -68,6 +86,7 @@ export default function Sidebar({
 
         {/* Upload Prescription */}
         <button
+        id="upload-prescription-btn"
           onClick={handlePrescriptionClick}
           className="flex items-center gap-3 p-2 rounded hover:bg-slate-50"
           disabled={loading}
@@ -84,6 +103,7 @@ export default function Sidebar({
 
         {/* Upload Test Result */}
         <button
+        id="upload-test-btn"
           onClick={handleTestClick}
           className="flex items-center gap-3 p-2 rounded hover:bg-slate-50"
           disabled={loading}
