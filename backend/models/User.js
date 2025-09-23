@@ -10,8 +10,8 @@ const UserSchema = new mongoose.Schema({
   address: { type: String },
   emergencyContact: { type: String },
   bloodGroup: { type: String },
-  height: { type: String, default: '' },  // NEW
-  weight: { type: String, default: '' },  // NEW
+  height: { type: String, default: '' },  
+  weight: { type: String, default: '' },  
   chronicDiseases: { type: String, default: '' },
   medicines: { type: String, default: '' },
   allergies: { type: String, default: '' },

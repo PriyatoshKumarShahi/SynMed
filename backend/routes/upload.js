@@ -7,7 +7,7 @@ const {
   uploadTest, 
   uploadAvatar, 
   deletePrescription, 
-  deleteTest   // ✅ add this
+  deleteTest   
 } = require('../controllers/uploadController');
 
 router.post('/prescription', auth, upload.single('file'), uploadPrescription);
@@ -15,6 +15,6 @@ router.post('/test', auth, upload.single('file'), uploadTest);
 router.post('/avatar', auth, upload.single('file'), uploadAvatar);
 
 router.delete('/prescription/:id', auth, deletePrescription);
-router.delete('/test/:id', auth, deleteTest);   // ✅ add this
+router.delete('/test/:id', auth, deleteTest);   
 
 module.exports = router;

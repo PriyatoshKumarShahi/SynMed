@@ -274,8 +274,7 @@ router.delete('/patients/:id', verifyAdminToken, async (req, res) => {
       return res.status(404).json({ message: 'Patient not found' });
     }
 
-    // Instead of deleting, you might want to deactivate
-    // For now, we'll actually delete as requested
+
     await User.findByIdAndDelete(id);
     await Prescription.deleteMany({ user: id });
     await TestResult.deleteMany({ user: id });

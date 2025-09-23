@@ -11,7 +11,7 @@ async function uploadToCloudOrLocal(filePath) {
     return { 
       url: result.secure_url, 
       filename: result.original_filename, 
-      public_id: result.public_id   // ✅ add this
+      public_id: result.public_id   
     };
   } else {
     return { 
@@ -31,8 +31,8 @@ exports.uploadPrescription = async (req, res) => {
 
     const p = await Prescription.create({
       user: req.userId,
-      imageUrl: upl.url,                   // ✅ save URL correctly
-      prescriptionDate: req.body.prescriptionDate || new Date(), // ✅ fix invalid date
+      imageUrl: upl.url,                  
+      prescriptionDate: req.body.prescriptionDate || new Date(), 
       doctorName: req.body.doctorName || "Unknown",
       hospitalName: req.body.hospitalName || "Unknown",
       cloudinaryPublicId: upl.public_id || null
@@ -46,8 +46,7 @@ exports.uploadPrescription = async (req, res) => {
 };
 
 
-// const cloudinary = require('../config/cloudinary'); // make sure you import your cloudinary config
-// const Prescription = require('../models/Prescription');
+
 
 exports.deletePrescription = async (req, res) => {
   try {

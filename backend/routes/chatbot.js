@@ -256,7 +256,7 @@ router.post("/chat", async (req, res) => {
         ? `I apologize, but I'm experiencing some technical difficulties right now. ${data.error.message}. Please try again in a moment.`
         : "I'm here to help, but I'm having trouble processing your message right now. Could you please try again?");
 
-    // 👉 Append disclaimer only for medical-type queries
+  
     if (isMedicalQuery(message)) {
       reply += disclaimer;
     }
