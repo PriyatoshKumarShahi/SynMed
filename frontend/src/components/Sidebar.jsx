@@ -19,11 +19,11 @@ export default function Sidebar({
   
 useEffect(() => {
   const handler = (e) => {
-    const action = e.detail; // get payload from CustomEvent
+    const action = e.detail; 
     if (action === "prescription" && presInputRef.current) {
-      presInputRef.current.click(); // trigger hidden input
+      presInputRef.current.click();
     } else if (action === "test" && testInputRef.current) {
-      testInputRef.current.click(); // trigger hidden input
+      testInputRef.current.click();
     }
   };
 
