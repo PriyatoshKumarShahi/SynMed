@@ -68,7 +68,7 @@ export default function Dashboard() {
 
   useOffline();
 
-  // ✅ Load user
+  // Load user
   const loadUser = async () => {
     try {
       const res = await API.get("/user/me");
@@ -169,7 +169,7 @@ export default function Dashboard() {
     loadNearbyHospitals();
   }, []);
 
-  // ✅ File Upload Handlers
+  //  File Upload Handlers
   const handleUploadPrescription = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -275,12 +275,12 @@ export default function Dashboard() {
 
         <main className="flex-1 p-6 ml-64">
           <div className="max-w-6xl mx-auto space-y-10">
-            {/* ✅ Welcome */}
+            {/* Welcome */}
             <h2 className="text-3xl font-bold text-gray-800">
               Welcome, {user?.name}
             </h2>
 
-            {/* ✅ QR Section */}
+            {/*  QR Section */}
             <div className="grid md:grid-cols-2 gap-6 mt-40 ml-60 items-stretch">
               <div className="flex flex-col w-1/2 items-center mt-20 justify-center rounded-lg p-6">
                 <QRDisplay userId={user?._id} />
@@ -303,7 +303,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* ✅ AI Assistant */}
+            {/*  AI Assistant */}
             <div className="p-10 rounded-2xl mt-6 flex items-center justify-between bg-yellow-100 min-h-[90vh]">
               <div className="max-w-xl flex-1 pr-6">
                 <h3 className="font-bold text-gray-800 text-3xl mb-4">
@@ -337,7 +337,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* ✅ Health Videos */}
+            {/* Health Videos */}
             <div className="p-6 rounded-lg">
               <h3 className="font-semibold text-gray-700 mb-4 text-lg">
                 Health & Hygiene Videos
@@ -369,7 +369,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* ✅ Immigrant Welfare News */}
+            {/* Immigrant Welfare News */}
             <div className="p-6 rounded-lg bg-gray-50">
               <h3 className="text-2xl font-bold mb-4 text-gray-800">
                 Immigrant Welfare News
@@ -407,7 +407,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* ✅ Nearby Hospitals */}
+            {/* Nearby Hospitals */}
             <div className="grid md:grid-cols-2 gap-6 mt-6 items-stretch">
               <div className="flex flex-col justify-center rounded-lg p-6">
                 <h3 className="font-semibold text-gray-700 mb-4 text-lg">
