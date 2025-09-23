@@ -16,11 +16,9 @@ export default function AdminDashboard({ onLogout }) {
     recentActivities: 0
   });
 
-  // Mock API call - replace with your actual API endpoint
   const fetchPatientsData = async () => {
     try {
       setLoading(true);
-      // Fetch real data from API
       const [patientsResponse, statsResponse] = await Promise.all([
         AdminAPI.getPatients({ search: searchTerm }),
         AdminAPI.getStats()
@@ -137,7 +135,6 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         </div>
 
-        {/* Search Bar */}
         <div className="mb-6">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -151,7 +148,6 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         </div>
 
-        {/* Patients Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPatients.map((patient) => (
             <div
@@ -224,7 +220,6 @@ export default function AdminDashboard({ onLogout }) {
         )}
       </div>
 
-      {/* Patient Detail Modal */}
       {selectedPatient && (
         <PatientDetailModal
           patient={selectedPatient}

@@ -32,7 +32,6 @@ export default function App() {
           <Route path="/public/:id" element={<PublicRecord />} />
           <Route path="/ai-chatbot" element={<ProtectedRoute><AiChatbotPage /></ProtectedRoute>} />
 
-          {/* Admin Panel */}
           <Route path="/admin" element={<AdminPanel />} />
         </Routes>
 
