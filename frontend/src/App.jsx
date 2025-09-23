@@ -12,8 +12,9 @@ const SignIn = React.lazy(() => import('./pages/SignIn'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const MedicalHistory = React.lazy(() => import('./pages/MedicalHistory'));
-const PublicRecord = React.lazy(() => import('./pages/PublicRecord')); // 👈 dynamic QR page
-const AiChatbotPage = React.lazy(() => import('./pages/AiChatbotPage')); // 👈 new chatbot page
+const PublicRecord = React.lazy(() => import('./pages/PublicRecord'));
+const AiChatbotPage = React.lazy(() => import('./pages/AiChatbotPage'));
+const AdminPanel = React.lazy(() => import('./pages/AdminPanel')); // 👈 added
 
 export default function App() {
   return (
@@ -24,29 +25,17 @@ export default function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
 
-          <Route
-            path="/dashboard"
-            element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
-          />
-          <Route
-            path="/profile"
-            element={<ProtectedRoute><Profile /></ProtectedRoute>}
-          />
-          <Route
-            path="/history"
-            element={<ProtectedRoute><MedicalHistory /></ProtectedRoute>}
-          />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/history" element={<ProtectedRoute><MedicalHistory /></ProtectedRoute>} />
 
-          {/* 👇 dynamic route for QR scanned links */}
           <Route path="/public/:id" element={<PublicRecord />} />
+          <Route path="/ai-chatbot" element={<ProtectedRoute><AiChatbotPage /></ProtectedRoute>} />
 
-          {/* 👇 AI Chatbot Page (protected) */}
-          <Route 
-            path="/ai-chatbot"
-            element={<ProtectedRoute><AiChatbotPage /></ProtectedRoute>}
-          />
+          {/* Admin Panel */}
+          <Route path="/admin" element={<AdminPanel />} />
         </Routes>
-        {/* ✅ ToastContainer should be outside Routes */}
+
         <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} />
       </Suspense>
     </AuthProvider>

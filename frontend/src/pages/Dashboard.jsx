@@ -165,7 +165,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadUser();
-    // loadVideos();
+    loadVideos();
     loadNearbyHospitals();
   }, []);
 

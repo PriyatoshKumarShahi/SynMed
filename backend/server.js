@@ -12,6 +12,8 @@ const userRoutes = require("./routes/user");
 const uploadRoutes = require("./routes/upload");
 const publicRoutes = require("./routes/public");
 const chatbotRoutes = require("./routes/chatbot");
+const adminRoutes = require("./routes/admin"); 
+
 
 const app = express();
 connectDB();
@@ -34,6 +36,8 @@ app.use("/api/user", userRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/admin", adminRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
