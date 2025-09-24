@@ -25,23 +25,21 @@ app.use(
   })
 );
 
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      useDefaults: true,
-      directives: {
-        defaultSrc: ["'self'"],
-       scriptSrc: ["'self'", "'unsafe-inline'", "https://apis.google.com", "https://www.youtube.com"],
-        imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'", "https://www.googleapis.com", "https://overpass-api.de"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        frameSrc: ["'self'", "https://www.youtube.com"],
-      },
+helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://apis.google.com", "https://www.youtube.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://www.googleapis.com", "https://overpass-api.de"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      frameSrc: ["'self'", "https://www.youtube.com"],
     },
-    crossOriginEmbedderPolicy: false,
-  })
-);
+  },
+  crossOriginEmbedderPolicy: false,
+});
+
 
 
 app.use(express.json({ limit: "10mb" }));
