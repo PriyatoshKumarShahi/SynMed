@@ -33,7 +33,7 @@ export default function App() {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><MedicalHistory /></ProtectedRoute>} />
 
-          <Route path="/public/:id" element={<PublicRecord />} />
+          <Route path="/medical-history/:id" element={<PublicRecord />} />
           <Route path="/ai-chatbot" element={<ProtectedRoute><AiChatbotPage /></ProtectedRoute>} />
 
           <Route path="/admin" element={<AdminPanel />} />

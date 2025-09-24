@@ -7,16 +7,17 @@ export default function PublicRecord() {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await API.get(`/public/${id}`);
-        setData(res.data);
-      } catch (err) {
-        console.error("Error loading public record", err);
-      }
-    };
-    load();
-  }, [id]);
+  const load = async () => {
+    try {
+      const res = await API.get(`/user/public/${id}`);
+      setData(res.data);
+    } catch (err) {
+      console.error("Error loading public record", err);
+    }
+  };
+  load();
+}, [id]);
+
 
   if (!data) return <p className="p-6">Loading...</p>;
 

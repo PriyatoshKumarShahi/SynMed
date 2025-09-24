@@ -95,12 +95,12 @@ exports.getPublicRecord = async (req, res) => {
 exports.getQr = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const user = await User.findById(userId).select('-password'); // exclude password
+    const user = await User.findById(userId).select('-password');
     if (!user) return res.status(404).json({ msg: 'User not found' });
 
-    // Instead of sending all JSON, send the URL of the public profile page
-    const publicProfileUrl = `${process.env.FRONTEND_URL}/public/${userId}`; 
-    // Example: http://localhost:5173/public/68c1b43bcf917a123791faec
+    // Use FRONTEND_URL from env or fallback
+    const publicProfileUrl = `${process.env.FRONTEND_URL}/medical-history/${userId}`;
+    // Example: https://synmed.onrender.com/medical-history/68c1b43bcf917a123791faec
 
     res.json({ url: publicProfileUrl });
   } catch (err) {
@@ -108,4 +108,5 @@ exports.getQr = async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 };
+
 
