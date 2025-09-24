@@ -12,8 +12,7 @@ const userRoutes = require("./routes/user");
 const uploadRoutes = require("./routes/upload");
 const publicRoutes = require("./routes/public");
 const chatbotRoutes = require("./routes/chatbot");
-const adminRoutes = require("./routes/admin"); 
-
+const adminRoutes = require("./routes/admin");
 
 const app = express();
 connectDB();
@@ -30,7 +29,7 @@ app.use(
   })
 );
 
-// Routes
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/upload", uploadRoutes);
@@ -38,6 +37,11 @@ app.use("/api/public", publicRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/admin", adminRoutes);
 
+const frontendPath = path.join(__dirname, "public");
+app.use(express.static(frontendPath));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(` Server running on port ${PORT}`));

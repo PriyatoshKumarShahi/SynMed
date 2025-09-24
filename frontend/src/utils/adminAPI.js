@@ -1,16 +1,14 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import axios from "axios";
 
 class AdminAPI {
   constructor() {
     this.api = axios.create({
-      baseURL: `${API_BASE_URL}/admin`,
-      headers: { 'Content-Type': 'application/json' },
+      baseURL: "/api/admin",
+      headers: { "Content-Type": "application/json" },
     });
 
     this.api.interceptors.request.use((config) => {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem("adminToken");
       if (token) config.headers.Authorization = `Bearer ${token}`;
       return config;
     });
@@ -20,7 +18,7 @@ class AdminAPI {
       (error) => {
         if (error.response?.status === 401) {
           this.logout();
-          window.location.href = '/admin';
+          window.location.href = "/admin";
         }
         return Promise.reject(error);
       }
@@ -28,21 +26,21 @@ class AdminAPI {
   }
 
   async login(email, password) {
-    const response = await this.api.post('/login', { email, password });
+    const response = await this.api.post("/login", { email, password });
     if (response.data.success) {
-      localStorage.setItem('adminToken', response.data.token);
-      localStorage.setItem('adminAuth', 'true');
+      localStorage.setItem("adminToken", response.data.token);
+      localStorage.setItem("adminAuth", "true");
     }
     return response.data;
   }
 
   logout() {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminAuth');
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminAuth");
   }
 
   async getPatients(params = {}) {
-    const response = await this.api.get('/patients', { params });
+    const response = await this.api.get("/patients", { params });
     return response.data;
   }
 
@@ -52,12 +50,13 @@ class AdminAPI {
   }
 
   async getStats() {
-    const response = await this.api.get('/stats');
+    const response = await this.api.get("/stats");
     return response.data;
   }
 
+
   async updateProfile(data) {
-    const response = await this.api.put('/profile', data);
+    const response = await this.api.put("/profile", data);
     return response.data;
   }
 
