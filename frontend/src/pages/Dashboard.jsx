@@ -216,38 +216,37 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ Static News Data
   const news = [
-    {
-      title: "Skill Development Scheme for Migrant Workers",
-      description:
-        "The Ministry of Skill Development has launched training programs for migrants to boost employment.",
-      url: "https://www.msde.gov.in/",
-      image:
-        "https://ccps.digifootprint.gov.in/static//uploads/2025/04/806a4067aebe65018c15da7d6bf86779.png",
-    },
-    {
-      title: "Free Healthcare for Migrants",
-      description:
-        "State governments and NGOs are organizing free health check-up camps for migrant workers.",
-      url: "https://www.shakshamfoundation.org/healthcare-ngos-in-india-free-medical-camps-shaksham-foundation/",
-      image: "https://azbigmedia.com/wp-content/uploads/2023/11/Free-Medical-Camp.jpg",
-    },
-    {
-      title: "Affordable Housing Subsidy for Migrants",
-      description:
-        "Pradhan Mantri Awas Yojana (PMAY) offers housing subsidies, including for migrant families.",
-      url: "https://pmaymis.gov.in/",
-      image: "https://pmaymis.gov.in/assets/img/banner/10-Years-of-PMAY-U-Banner.jpg",
-    },
-    {
-      title: "Scholarships for Children of Migrants",
-      description:
-        "National Scholarship Portal (NSP) provides financial support for children of migrants.",
-      url: "https://scholarships.gov.in/",
-      image: "https://scholarships.gov.in/public/assets2425/images/banner/Ministry-of-labour.png",
-    },
-  ];
+  {
+    title: "Skill Development Scheme for Migrant Workers",
+    description:
+      "The Ministry of Skill Development has launched training programs for migrants to boost employment.",
+    url: "https://www.msde.gov.in/",
+    image: "/images/news/skill-development.png",
+  },
+  {
+    title: "Free Healthcare for Migrants",
+    description:
+      "State governments and NGOs are organizing free health check-up camps for migrant workers.",
+    url: "https://www.shakshamfoundation.org/healthcare-ngos-in-india-free-medical-camps-shaksham-foundation/",
+    image: "/images/news/free-healthcare.png",
+  },
+  {
+    title: "Affordable Housing Subsidy for Migrants",
+    description:
+      "Pradhan Mantri Awas Yojana (PMAY) offers housing subsidies, including for migrant families.",
+    url: "https://pmaymis.gov.in/",
+    image: "/images/news/housing-subsidy.png",
+  },
+  {
+    title: "Scholarships for Children of Migrants",
+    description:
+      "National Scholarship Portal (NSP) provides financial support for children of migrants.",
+    url: "https://scholarships.gov.in/",
+    image: "/images/news/scholarships.png",
+  },
+];
+
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -384,7 +383,7 @@ export default function Dashboard() {
                       {item.title}
                     </h4>
 
-                    {/* 🖼️ Image goes here */}
+                   
                     {item.image && (
                       <img
                         src={item.image}
