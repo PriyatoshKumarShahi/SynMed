@@ -17,7 +17,6 @@ const adminRoutes = require("./routes/admin");
 const app = express();
 connectDB();
 
-// ✅ Allow cross-origin requests (update origin to your frontend URL on Render)
 app.use(
   cors({
     origin: ["https://synmed.onrender.com", "http://localhost:3000"],
@@ -26,7 +25,6 @@ app.use(
   })
 );
 
-// ✅ Custom Helmet CSP to allow external APIs & images
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -51,7 +49,6 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ Rate limiting
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -67,7 +64,6 @@ app.use("/api/public", publicRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/admin", adminRoutes);
 
-// ✅ Serve frontend build
 const frontendPath = path.join(__dirname, "public");
 app.use(express.static(frontendPath));
 app.get("*", (req, res) => {
