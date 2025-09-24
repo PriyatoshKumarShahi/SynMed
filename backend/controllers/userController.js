@@ -103,27 +103,24 @@ exports.getQr = async (req, res) => {
     const user = await User.findById(userId).select('-password');
     if (!user) return res.status(404).json({ msg: 'User not found' });
 
-    if (!process.env.QR_SECRET) throw new Error('QR_SECRET is missing');
-
-    const token = jwt.sign({ userId: user._id }, process.env.QR_SECRET, { expiresIn: '15m' });
-    const url = `${process.env.FRONTEND_URL}/medical-history/qr/${token}`;
+    // Permanent link (no token expiry)
+    const url = `${process.env.FRONTEND_URL}/medical-history/public/${userId}`;
     res.json({ url });
 
   } catch (err) {
-    console.error('getQr error:', err); // 👈 log the exact error
-    res.status(500).json({ msg: err.message }); // send actual message temporarily
+    console.error('getQr error:', err);
+    res.status(500).json({ msg: err.message });
   }
 };
 
 
-
-exports.verifyQrToken = (req, res) => {
-  const { token } = req.body;
-  try {
-    const decoded = jwt.verify(token, process.env.QR_SECRET);
-    return res.json({ userId: decoded.userId });
-  } catch (err) {
-    return res.status(400).json({ msg: 'Invalid or expired token' });
-  }
-};
+// exports.verifyQrToken = (req, res) => {
+//   const { token } = req.body;
+//   try {
+//     const decoded = jwt.verify(token, process.env.QR_SECRET);
+//     return res.json({ userId: decoded.userId });
+//   } catch (err) {
+//     return res.status(400).json({ msg: 'Invalid or expired token' });
+//   }
+// };
 

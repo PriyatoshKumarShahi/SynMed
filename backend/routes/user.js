@@ -6,13 +6,13 @@ const {
   updateProfile, 
   getPublicRecord, 
   getQr, 
-  verifyQrToken   
+ 
 } = require('../controllers/userController');
 
 router.get('/me', auth, getMe);
 router.put('/me', auth, updateProfile);
 router.get('/public/:userId', getPublicRecord);
 router.get('/qr/:userId', getQr);
-router.post('/verify-qr-token', verifyQrToken); 
+// router.post('/verify-qr-token', verifyQrToken); 
 
 module.exports = router;
