@@ -8,6 +8,7 @@ import Loader from "../components/Loader";
 import { toast } from "react-toastify";
 import SectionLoader from "../components/SectionLoader";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 // ✅ Leaflet Imports
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
@@ -67,6 +68,18 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useOffline();
+   const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      const el = document.getElementById(location.hash.replace("#", ""));
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100); // small delay so DOM is ready
+      }
+    }
+  }, [location]);
 
   // Load user
   const loadUser = async () => {
@@ -329,9 +342,9 @@ export default function Dashboard() {
               </div>
               <div className="flex-shrink-0 animate-bounce">
                 <img
-                  src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png"
+                  src="https://png.pngtree.com/png-clipart/20230401/original/pngtree-smart-chatbot-cartoon-clipart-png-image_9015126.png"
                   alt="AI Assistant"
-                  className="w-64 h-64 object-contain"
+                  className="w-80 h-80 object-contain"
                 />
               </div>
             </div>
@@ -369,7 +382,7 @@ export default function Dashboard() {
             </div>
 
             {/* Immigrant Welfare News */}
-            <div className="p-6 rounded-lg bg-gray-50">
+            <div id="immigrant-welfare-news"  className="p-6 rounded-lg bg-gray-50">
               <h3 className="text-2xl font-bold mb-4 text-gray-800">
                 Immigrant Welfare News
               </h3>

@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';   
-import { Heart, Menu, X } from 'lucide-react';
+import { Heart, Menu, X, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 
@@ -17,11 +17,16 @@ export default function Navbar() {
 
   return (
     <nav className="fixed w-full bg-white/80 backdrop-blur z-40 border-b">
-      <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-16">
+      <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-20">
         <div className="flex items-center gap-3">
-          <Heart className="text-red-500" />
+         <img 
+  src="/images/logo.png" 
+  alt="Logo"
+  className="w-24 h-auto ml-10"
+/>
+
           <Link to="/" className="font-bold text-lg text-slate-800">
-            Synmed
+          
           </Link>
         </div>
 
@@ -40,11 +45,15 @@ export default function Navbar() {
 
           {user ? (
             <>
-              <Link to="/dashboard" className="px-3 py-1 bg-blue-600 text-white rounded">
+              <Link to="/dashboard" className="px-3 py-1 bg-blue-400 text-white rounded">
                 Dashboard
               </Link>
-              <button onClick={handleLogout} className="text-sm text-red-600">
-                Logout
+
+              <button 
+                onClick={handleLogout} 
+                className="flex items-center gap-1 text-sm text-red-600"
+              >
+            <ArrowRight size={16} />    Logout 
               </button>
             </>
           ) : (
@@ -62,6 +71,7 @@ export default function Navbar() {
         </div>
       </div>
 
+      
       <AnimatePresence>
         {open && (
           <motion.div 
@@ -77,12 +87,14 @@ export default function Navbar() {
               <Link to="/" onClick={() => setOpen(false)}>Migrant Data</Link>
               {user ? (
                 <>
-                  <Link to="/dashboard" onClick={() => setOpen(false)}>Dashboard</Link>
+                  <Link to="/dashboard" onClick={() => setOpen(false)} className="text-green-600 font-semibold">
+                    Dashboard
+                  </Link>
                   <button 
                     onClick={() => { handleLogout(); setOpen(false); }} 
-                    className="text-red-600 text-left"
+                    className="flex items-center gap-1 text-red-600 text-left"
                   >
-                    Logout
+                    Logout <ArrowRight size={16} />
                   </button>
                 </>
               ) : (

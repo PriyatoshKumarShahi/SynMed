@@ -272,7 +272,7 @@ export default function AiChatbotPage() {
 
       <div className="flex flex-1">
         {/* Sidebar: Chat History */}
-        <aside className="w-80 border-r border-gray-200 bg-gray-50 flex flex-col fixed left-0 top-0 h-full pt-16 z-10">
+        <aside className="w-80 border-r border-gray-200 bg-gray-50 flex flex-col fixed left-0 top-2 h-full pt-16 z-10">
           {/* New Chat Button */}
           <div className="p-4 border-b border-gray-200">
             <button
@@ -351,7 +351,7 @@ export default function AiChatbotPage() {
         </aside>
 
         {/* Chat Container */}
-        <main className="flex-1 flex flex-col mt-14 bg-white ml-80">
+        <main className="flex-1 flex flex-col mt-20 bg-white ml-80">
           {/* Chat Messages */}
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="w-full space-y-4">
