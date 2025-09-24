@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import VoiceCommands from './components/VoiceCommands';
+import PublicRecordQR from './pages/PublicRecordQR';
 
 
 
@@ -16,7 +17,7 @@ const SignIn = React.lazy(() => import('./pages/SignIn'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const MedicalHistory = React.lazy(() => import('./pages/MedicalHistory'));
-const PublicRecord = React.lazy(() => import('./pages/PublicRecord'));
+const PublicRecord = React.lazy(() => import('./pages/PublicRecordQR'));
 const AiChatbotPage = React.lazy(() => import('./pages/AiChatbotPage'));
 const AdminPanel = React.lazy(() => import('./pages/AdminPanel'));
 
@@ -33,7 +34,8 @@ export default function App() {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><MedicalHistory /></ProtectedRoute>} />
 
-          <Route path="/medical-history/:id" element={<PublicRecord />} />
+         <Route path="/medical-history/qr/:token" element={<PublicRecordQR />} />
+
           <Route path="/ai-chatbot" element={<ProtectedRoute><AiChatbotPage /></ProtectedRoute>} />
 
           <Route path="/admin" element={<AdminPanel />} />

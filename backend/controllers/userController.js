@@ -2,6 +2,8 @@ const User = require('../models/User');
 const { generateDataUrl } = require('../utils/qrGenerator');
 const Prescription = require('../models/Prescription');
 const TestResult = require('../models/TestResult');
+const jwt = require('jsonwebtoken');
+
 
 exports.getMe = async (req, res) => {
   try {
@@ -92,21 +94,36 @@ exports.getPublicRecord = async (req, res) => {
   }
 };
 
+
 exports.getQr = async (req, res) => {
   try {
     const userId = req.params.userId;
+    if (!userId) return res.status(400).json({ msg: 'User ID is required' });
+
     const user = await User.findById(userId).select('-password');
     if (!user) return res.status(404).json({ msg: 'User not found' });
 
-    // Use FRONTEND_URL from env or fallback
-    const publicProfileUrl = `${process.env.FRONTEND_URL}/medical-history/${userId}`;
-    // Example: https://synmed.onrender.com/medical-history/68c1b43bcf917a123791faec
+    if (!process.env.QR_SECRET) throw new Error('QR_SECRET is missing');
 
-    res.json({ url: publicProfileUrl });
+    const token = jwt.sign({ userId: user._id }, process.env.QR_SECRET, { expiresIn: '15m' });
+    const url = `${process.env.FRONTEND_URL}/medical-history/qr/${token}`;
+    res.json({ url });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server error' });
+    console.error('getQr error:', err); // 👈 log the exact error
+    res.status(500).json({ msg: err.message }); // send actual message temporarily
   }
 };
 
+
+
+exports.verifyQrToken = (req, res) => {
+  const { token } = req.body;
+  try {
+    const decoded = jwt.verify(token, process.env.QR_SECRET);
+    return res.json({ userId: decoded.userId });
+  } catch (err) {
+    return res.status(400).json({ msg: 'Invalid or expired token' });
+  }
+};
 
